@@ -22,9 +22,10 @@ export default function KothakomDashboard() {
   const { firestore, isUserLoading, user } = useFirebase();
 
   const submissionsRef = useMemoFirebase(() => {
-    if (!firestore) return null;
+    // Only create the collection reference if the user is logged in and firestore is available.
+    if (!firestore || !user) return null;
     return collection(firestore, 'contact_form_submissions');
-  }, [firestore]);
+  }, [firestore, user]);
 
   const { data: submissions, isLoading } = useCollection<ContactFormSubmission>(submissionsRef);
 
