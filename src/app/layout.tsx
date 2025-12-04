@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import SplashCursor from '@/components/splash-cursor';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
@@ -35,7 +34,6 @@ export default function RootLayout({
       <body className={cn('font-body antialiased', 'min-h-screen bg-background font-sans')}>
         {children}
         <Toaster />
-        <SplashCursor />
       </body>
     </html>
   );

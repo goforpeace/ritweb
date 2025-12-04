@@ -2,8 +2,6 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import Prism from '@/components/prism';
-import SplitText from '@/components/split-text';
 import { ArrowRight } from 'lucide-react';
 import AnimatedContent from '@/components/animated-content';
 
@@ -11,16 +9,17 @@ const Hero = () => {
     return (
         <section id="home" className="relative h-dvh min-h-[700px] w-full flex items-center justify-center text-center overflow-hidden">
             <div className="absolute inset-0">
-                <Prism />
                 <div className="absolute inset-0 bg-background/80 backdrop-blur-sm"></div>
                 <div className="absolute inset-0 bg-gradient-to-b from-background/0 via-background/0 to-background"></div>
             </div>
 
             <div className="relative z-10 container px-4 md:px-6">
                 <div className="flex flex-col items-center">
-                    <SplitText as="h1" className="text-4xl font-extrabold tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl !leading-tight">
-                        Powering Your Business with Smart IT Solutions
-                    </SplitText>
+                    <AnimatedContent>
+                      <h1 className="text-4xl font-extrabold tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl !leading-tight">
+                          Powering Your Business with Smart IT Solutions
+                      </h1>
+                    </AnimatedContent>
                     <AnimatedContent as="div">
                         <p className="mx-auto mt-6 max-w-[700px] text-lg text-muted-foreground md:text-xl">
                             We provide innovative and reliable IT services to help your business thrive in the digital age.
