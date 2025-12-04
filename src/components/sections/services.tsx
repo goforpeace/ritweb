@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CloudCog, DatabaseZap, Network, Shield, TabletSmartphone, Users } from 'lucide-react';
-import AnimatedContent from '../animated-content';
 
 const services = [
   {
@@ -38,7 +37,7 @@ const services = [
 const Services = () => {
   return (
     <section id="services" className="py-20 sm:py-32 bg-background/50">
-      <AnimatedContent as="div" className="container mx-auto px-4 md:px-6">
+      <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Our Services</h2>
           <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-xl">
@@ -58,7 +57,7 @@ const Services = () => {
             </Card>
           ))}
         </div>
-      </AnimatedContent>
+      </div>
     </section>
   );
 };

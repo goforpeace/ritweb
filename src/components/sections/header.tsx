@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { Code, Menu } from 'lucide-react';
-import GooeyNav from '@/components/gooey-nav';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useState, useEffect } from 'react';
@@ -22,6 +21,20 @@ const Header = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    const NavLinks = () => (
+        <nav className="flex gap-6">
+            {navItems.map((item) => (
+                <Link
+                    key={item}
+                    href={`#${item.toLowerCase()}`}
+                    className="text-sm font-medium transition-colors hover:text-primary"
+                >
+                    {item}
+                </Link>
+            ))}
+        </nav>
+    );
+
     return (
         <header className={cn(
             "sticky top-0 z-40 w-full transition-all duration-300",
@@ -34,7 +47,7 @@ const Header = () => {
                 </Link>
                 
                 <div className="hidden md:block">
-                    <GooeyNav />
+                    <NavLinks />
                 </div>
                 
                 <div className="md:hidden">

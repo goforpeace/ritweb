@@ -2,7 +2,6 @@ import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Badge } from '@/components/ui/badge';
-import AnimatedContent from '../animated-content';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const portfolioItems = PlaceHolderImages.filter(p => p.id.startsWith('portfolio-'));
@@ -10,7 +9,7 @@ const portfolioItems = PlaceHolderImages.filter(p => p.id.startsWith('portfolio-
 const Portfolio = () => {
     return (
         <section id="portfolio" className="py-20 sm:py-32 bg-background">
-            <AnimatedContent as="div" className="container mx-auto px-4 md:px-6">
+            <div className="container mx-auto px-4 md:px-6">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Our Portfolio</h2>
                     <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-xl">
@@ -57,7 +56,7 @@ const Portfolio = () => {
                     <CarouselPrevious className="ml-12" />
                     <CarouselNext className="mr-12" />
                 </Carousel>
-            </AnimatedContent>
+            </div>
         </section>
     );
 };

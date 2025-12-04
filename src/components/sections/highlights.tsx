@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BrainCircuit, LifeBuoy, Server, ShieldCheck } from 'lucide-react';
-import AnimatedContent from '../animated-content';
 
 const highlights = [
     {
@@ -28,7 +27,7 @@ const highlights = [
 const Highlights = () => {
     return (
         <section className="py-20 sm:py-32 bg-background">
-            <AnimatedContent as="div" className="container mx-auto px-4 md:px-6">
+            <div className="container mx-auto px-4 md:px-6">
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
                     {highlights.map((item, index) => (
                         <Card key={index} className="bg-card/50 border-border/50 text-center">
@@ -42,7 +41,7 @@ const Highlights = () => {
                         </Card>
                     ))}
                 </div>
-            </AnimatedContent>
+            </div>
         </section>
     );
 };

@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
-import AnimatedContent from '@/components/animated-content';
 
 const Hero = () => {
     return (
@@ -15,12 +14,12 @@ const Hero = () => {
 
             <div className="relative z-10 container px-4 md:px-6">
                 <div className="flex flex-col items-center">
-                    <AnimatedContent>
+                    <div>
                       <h1 className="text-4xl font-extrabold tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl !leading-tight">
                           Powering Your Business with Smart IT Solutions
                       </h1>
-                    </AnimatedContent>
-                    <AnimatedContent as="div">
+                    </div>
+                    <div>
                         <p className="mx-auto mt-6 max-w-[700px] text-lg text-muted-foreground md:text-xl">
                             We provide innovative and reliable IT services to help your business thrive in the digital age.
                         </p>
@@ -35,7 +34,7 @@ const Hero = () => {
                                 <Link href="#contact">Contact Us</Link>
                             </Button>
                         </div>
-                    </AnimatedContent>
+                    </div>
                 </div>
             </div>
         </section>

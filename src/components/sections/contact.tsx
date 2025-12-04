@@ -17,7 +17,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import AnimatedContent from "../animated-content"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 
 const formSchema = z.object({
@@ -52,7 +51,7 @@ const Contact = () => {
 
   return (
     <section id="contact" className="py-20 sm:py-32 bg-background">
-      <AnimatedContent as="div" className="container mx-auto px-4 md:px-6">
+      <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Get in Touch</h2>
           <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-xl">
@@ -131,7 +130,7 @@ const Contact = () => {
             </div>
           )}
         </div>
-      </AnimatedContent>
+      </div>
     </section>
   )
 }
