@@ -9,7 +9,7 @@ const Footer = () => {
             <div className="container mx-auto px-4 md:px-6 py-8">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                     <Link href="/" className="flex items-center" aria-label="Remotized IT Home">
-                      <Image src="https://res.cloudinary.com/dj4lirc0d/image/upload/v1764888498/Artboard_5_2x_otkwum.png" alt="Remotized IT Logo" width={160} height={40} />
+                      <Image src="https://res.cloudinary.com/dj4lirc0d/image/upload/v1764888498/Artboard_5_2x_otkwum.png" alt="Remotized IT Logo" width={200} height={50} />
                     </Link>
                     <p className="text-sm text-muted-foreground">
                         &copy; {new Date().getFullYear()} Remotized IT. All rights reserved.

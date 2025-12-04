@@ -33,7 +33,7 @@ const Header = () => {
     };
 
     const NavLinks = () => (
-        <nav className="flex items-center gap-6">
+        <nav className="hidden md:flex items-center gap-6">
             {navItems.map((item) => (
                 <Link
                     key={item}
@@ -59,10 +59,10 @@ const Header = () => {
         )}>
             <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
                 <Link href="/" className="flex items-center" aria-label="Remotized IT Home">
-                    <Image src="https://res.cloudinary.com/dj4lirc0d/image/upload/v1764888498/Artboard_5_2x_otkwum.png" alt="Remotized IT Logo" width={160} height={40} />
+                    <Image src="https://res.cloudinary.com/dj4lirc0d/image/upload/v1764888498/Artboard_5_2x_otkwum.png" alt="Remotized IT Logo" width={200} height={50} />
                 </Link>
                 
-                <div className="hidden md:flex items-center gap-6">
+                <div className="flex items-center gap-6">
                     <NavLinks />
                     {!isUserLoading && user && (
                         <div className="flex items-center gap-2">
