@@ -1,13 +1,14 @@
 "use client";
 
 import Link from 'next/link';
-import { Code, Menu, LogOut } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useUser, useFirebase } from '@/firebase';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 const navItems = ["Home", "Services", "Portfolio", "Testimonials", "Contact"];
 
@@ -40,6 +41,7 @@ const Header = () => {
                     className="text-sm font-medium transition-colors hover:text-primary"
                     onClick={(e) => {
                         if(window.location.pathname !== '/') {
+                            e.preventDefault();
                             router.push(`/#${item.toLowerCase()}`);
                         }
                     }}
@@ -56,9 +58,8 @@ const Header = () => {
             hasScrolled ? "border-b border-border/40 bg-background/95 backdrop-blur-sm" : "bg-transparent"
         )}>
             <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
-                <Link href="/" className="flex items-center gap-2" aria-label="Remotized IT Home">
-                    <Code className="h-7 w-7 text-primary" />
-                    <span className="text-xl font-bold">Remotized IT</span>
+                <Link href="/" className="flex items-center" aria-label="Remotized IT Home">
+                    <Image src="https://res.cloudinary.com/dj4lirc0d/image/upload/v1764888498/Artboard_5_2x_otkwum.png" alt="Remotized IT Logo" width={160} height={40} />
                 </Link>
                 
                 <div className="hidden md:flex items-center gap-6">
@@ -92,6 +93,7 @@ const Header = () => {
                                         onClick={(e) => {
                                             setSheetOpen(false)
                                             if(window.location.pathname !== '/') {
+                                                e.preventDefault();
                                                 router.push(`/#${item.toLowerCase()}`);
                                             }
                                         }}
