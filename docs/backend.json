@@ -1,0 +1,72 @@
+{
+  "entities": {
+    "ContactFormSubmission": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ContactFormSubmission",
+      "type": "object",
+      "description": "Represents a contact form submission from the website.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the contact form submission."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the person submitting the form."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the person submitting the form.",
+          "format": "email"
+        },
+        "company": {
+          "type": "string",
+          "description": "The company name provided in the form."
+        },
+        "message": {
+          "type": "string",
+          "description": "The message content from the contact form."
+        },
+        "submissionDate": {
+          "type": "string",
+          "description": "The date and time the form was submitted.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "message",
+        "submissionDate"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/contact_form_submissions/{submissionId}",
+        "definition": {
+          "entityName": "ContactFormSubmission",
+          "schema": {
+            "$ref": "#/backend/entities/ContactFormSubmission"
+          },
+          "description": "Stores contact form submissions.  No denormalized authorization fields are needed because access will be managed via a separate admin role system (DBAC).",
+          "params": [
+            {
+              "name": "submissionId",
+              "description": "Unique identifier for the contact form submission."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This design prioritizes security and scalability for handling contact form submissions. All submissions are stored in a single collection, `/contact_form_submissions`, making listing submissions straightforward. No authorization dependencies exist as the dashboard will likely require admin access, which will be implemented out-of-scope using a separate authentication and role management system, as per the DBAC principle (Database Authentication and Authorization). This allows for future expansion without impacting the core security model of contact form submissions. The structure is simple and avoids any complex authorization rules, enabling efficient queries and updates."
+  }
+}
