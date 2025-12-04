@@ -15,13 +15,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase, useUser, initiateEmailSignIn } from '@/firebase';
+import { useFirebase, useUser } from '@/firebase';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FirebaseError } from 'firebase/app';
 import Header from '@/components/sections/header';
 import Footer from '@/components/sections/footer';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -50,19 +51,21 @@ export default function LoginPage() {
   }, [user, router]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setAuthError(null);
     try {
-        await auth.signInWithEmailAndPassword(values.email, values.password)
+        await signInWithEmailAndPassword(auth, values.email, values.password);
+        // The onAuthStateChanged listener in the provider will handle the redirect
         toast({
           title: 'Login Successful!',
-          description: "You're now logged in.",
+          description: "You're being redirected to the dashboard.",
         });
-        router.push('/kothakom');
       } catch (error) {
         let errorMessage = 'An unexpected error occurred.';
         if (error instanceof FirebaseError) {
           switch (error.code) {
             case 'auth/user-not-found':
             case 'auth/wrong-password':
+            case 'auth/invalid-credential':
               errorMessage = 'Invalid email or password.';
               break;
             case 'auth/invalid-email':

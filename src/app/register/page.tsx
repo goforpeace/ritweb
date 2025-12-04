@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { FirebaseError } from 'firebase/app';
 import Header from '@/components/sections/header';
 import Footer from '@/components/sections/footer';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -50,13 +51,14 @@ export default function RegisterPage() {
   }, [user, router]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setAuthError(null);
     try {
-      await auth.createUserWithEmailAndPassword(values.email, values.password);
+      await createUserWithEmailAndPassword(auth, values.email, values.password);
       toast({
         title: 'Registration Successful!',
         description: "You're now logged in.",
       });
-      router.push('/kothakom');
+      // The onAuthStateChanged listener will handle the redirect
     } catch (error) {
       let errorMessage = 'An unexpected error occurred.';
       if (error instanceof FirebaseError) {
