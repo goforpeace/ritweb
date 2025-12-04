@@ -63,22 +63,14 @@ const Header = () => {
                 
                 <div className="hidden md:flex items-center gap-6">
                     <NavLinks />
-                    {!isUserLoading && (
+                    {!isUserLoading && user && (
                         <div className="flex items-center gap-2">
-                            {user ? (
-                                <>
-                                    <Button asChild variant="secondary">
-                                        <Link href="/kothakom">Dashboard</Link>
-                                    </Button>
-                                    <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Logout">
-                                        <LogOut className="h-5 w-5" />
-                                    </Button>
-                                </>
-                            ) : (
-                                <Button asChild>
-                                    <Link href="/login">Login</Link>
-                                </Button>
-                            )}
+                            <Button asChild variant="secondary">
+                                <Link href="/kothakom">Dashboard</Link>
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Logout">
+                                <LogOut className="h-5 w-5" />
+                            </Button>
                         </div>
                     )}
                 </div>
@@ -107,16 +99,10 @@ const Header = () => {
                                         {item}
                                     </Link>
                                 ))}
-                                 {!isUserLoading && (
+                                 {!isUserLoading && user && (
                                     <div className="flex flex-col gap-4 mt-8">
-                                        {user ? (
-                                            <>
-                                                <Link href="/kothakom" className="text-3xl font-medium" onClick={() => setSheetOpen(false)}>Dashboard</Link>
-                                                <button onClick={() => { handleLogout(); setSheetOpen(false); }} className="text-3xl font-medium text-left">Logout</button>
-                                            </>
-                                        ) : (
-                                            <Link href="/login" className="text-3xl font-medium" onClick={() => setSheetOpen(false)}>Login</Link>
-                                        )}
+                                        <Link href="/kothakom" className="text-3xl font-medium" onClick={() => setSheetOpen(false)}>Dashboard</Link>
+                                        <button onClick={() => { handleLogout(); setSheetOpen(false); }} className="text-3xl font-medium text-left">Logout</button>
                                     </div>
                                 )}
                             </nav>
