@@ -1,6 +1,6 @@
 'use client';
 
-import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
+import { useFirebase, useUser, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import Header from '@/components/sections/header';
 import Footer from '@/components/sections/footer';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 type ContactFormSubmission = {
   id: string;
@@ -19,10 +21,10 @@ type ContactFormSubmission = {
 };
 
 export default function KothakomDashboard() {
-  const { firestore, isUserLoading, user } = useFirebase();
+  const { firestore } = useFirebase();
+  const { user, isUserLoading } = useUser();
 
   const submissionsRef = useMemoFirebase(() => {
-    // Only create the collection reference if the user is logged in and firestore is available.
     if (!firestore || !user) return null;
     return collection(firestore, 'contact_form_submissions');
   }, [firestore, user]);
@@ -43,8 +45,11 @@ export default function KothakomDashboard() {
               <CardTitle>Access Denied</CardTitle>
               <CardDescription>You must be logged in to view this page.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col gap-4 items-center">
               <p>Please log in to access the dashboard.</p>
+              <Button asChild>
+                <Link href="/login">Go to Login</Link>
+              </Button>
             </CardContent>
           </Card>
         </main>
