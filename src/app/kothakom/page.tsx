@@ -1,6 +1,6 @@
 'use client';
 
-import { useFirebase, useUser, useMemoFirebase } from '@/firebase';
+import { useFirebase, useUser, useMemoFirebase, useCollection } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
