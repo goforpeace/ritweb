@@ -18,6 +18,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
+import { useFirebase, addDocumentNonBlocking } from "@/firebase"
+import { collection } from "firebase/firestore"
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -28,6 +30,7 @@ const formSchema = z.object({
 
 const Contact = () => {
   const { toast } = useToast()
+  const { firestore } = useFirebase();
   const mapImage = PlaceHolderImages.find(p => p.id === 'contact-map');
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -41,7 +44,21 @@ const Contact = () => {
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+    if (!firestore) {
+        toast({
+            variant: "destructive",
+            title: "Uh oh! Something went wrong.",
+            description: "Could not connect to the database. Please try again later.",
+        });
+        return;
+    }
+    const submissionsCollection = collection(firestore, 'contact_form_submissions');
+    
+    addDocumentNonBlocking(submissionsCollection, {
+        ...values,
+        submissionDate: new Date().toISOString(),
+    });
+
     toast({
       title: "Message Sent!",
       description: "Thanks for reaching out. We'll get back to you shortly.",

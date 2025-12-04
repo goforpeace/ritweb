@@ -1,57 +1,15 @@
-/**
- * Core Philosophy: This ruleset implements a secure "write-only" dropbox pattern.
- * The primary goal is to allow any user, including unauthenticated visitors,
- * to submit a contact form while strictly preventing any client-side application
- * from reading, updating, or deleting these submissions. This ensures the
- * privacy and integrity of the submitted data.
- *
- * Data Structure: All data is stored in a single, top-level collection:
- * /contact_form_submissions/{submissionId}.
- *
- * Key Security Decisions:
- * - Public Create Access: To allow a public-facing website form to function,
- *   anyone can create a new document in the contact_form_submissions collection.
- * - No Read/Update/Delete Access: All read, update, and delete operations are
- *   explicitly denied for all client-side users. Access to this data is
- *   intended exclusively for backend services using Admin SDK credentials,
- *   which bypass these security rules (e.g., for a secure admin dashboard).
- * - No Data Validation: In line with the prototyping philosophy, the shape or
- *   type of the incoming data is not validated. The focus is solely on
- *   authorization.
- *
- * Denormalization for Authorization: Not applicable. Since client-side reads are
- * disallowed, there is no need for denormalized fields to check for ownership or
- * roles within the rules themselves.
- *
- * Structural Segregation: Not applicable. The collection serves a single purpose
- * and does not contain a mix of public and private data.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper Functions
-
-    /**
-     * @description Allows any user (authenticated or not) to submit a contact
-     * form, but denies all read, update, and delete operations. This creates a
-     * secure 'write-only' dropbox for form submissions, which can only be
-     * accessed by backend services using Admin SDK credentials.
-     * @path /contact_form_submissions/{submissionId}
-     * @allow (create) Any anonymous user can create a new document in this collection.
-     * @deny (get) A signed-in user attempts to read a submission they just made. Fails because all reads are blocked.
-     * @deny (list) Any user attempts to list all submissions. Fails because listing is blocked to protect privacy.
-     * @principle Enforces a 'write-only' data ingestion pattern. Client applications can add data but cannot read or modify it, protecting sensitive information for backend-only access.
-     */
     match /contact_form_submissions/{submissionId} {
-      // READ: Denied. No client should ever read contact form submissions.
-      allow get: if false;
-      allow list: if false;
-
-      // WRITE: Only creation is allowed, open to the public for the form to work.
+      // Allow anyone to create a submission
       allow create: if true;
-      allow update: if false;
-      allow delete: if false;
+
+      // Only authenticated users can read/list submissions
+      allow get, list: if request.auth != null;
+      
+      // Nobody can update or delete submissions from the client
+      allow update, delete: if false;
     }
   }
 }
