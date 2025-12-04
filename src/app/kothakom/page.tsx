@@ -1,12 +1,11 @@
 'use client';
 
-import { useCollection, useFirebase } from '@/firebase';
+import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { useMemo } from 'react';
 import Header from '@/components/sections/header';
 import Footer from '@/components/sections/footer';
 
@@ -22,7 +21,7 @@ type ContactFormSubmission = {
 export default function KothakomDashboard() {
   const { firestore, isUserLoading, user } = useFirebase();
 
-  const submissionsRef = useMemo(() => {
+  const submissionsRef = useMemoFirebase(() => {
     if (!firestore) return null;
     return collection(firestore, 'contact_form_submissions');
   }, [firestore]);
