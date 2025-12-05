@@ -129,6 +129,46 @@
         "createdBy",
         "createdAt"
       ]
+    },
+    "Task": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Task",
+      "type": "object",
+      "description": "Represents a task in the admin dashboard.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the task."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the task."
+        },
+        "summary": {
+          "type": "string",
+          "description": "A short summary of the task."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "The date and time the task was created.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the task.",
+          "enum": [
+            "New",
+            "In Progress",
+            "Completed"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "summary",
+        "createdAt"
+      ]
     }
   },
   "auth": {
@@ -203,6 +243,42 @@
             {
               "name": "requestId",
               "description": "The ID of the parent call request."
+            },
+            {
+              "name": "noteId",
+              "description": "Unique identifier for the note."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tasks/{taskId}",
+        "definition": {
+          "entityName": "Task",
+          "schema": {
+            "$ref": "#/backend/entities/Task"
+          },
+          "description": "Stores tasks for the admin dashboard.",
+          "params": [
+            {
+              "name": "taskId",
+              "description": "Unique identifier for the task."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tasks/{taskId}/notes/{noteId}",
+        "definition": {
+          "entityName": "Note",
+          "schema": {
+            "$ref": "#/backend/entities/Note"
+          },
+          "description": "Stores notes for a specific task.",
+          "params": [
+            {
+              "name": "taskId",
+              "description": "The ID of the parent task."
             },
             {
               "name": "noteId",

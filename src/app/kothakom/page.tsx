@@ -6,7 +6,7 @@ import Header from '@/components/sections/header';
 import Footer from '@/components/sections/footer';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Phone, Mail } from 'lucide-react';
+import { Phone, Mail, ListChecks } from 'lucide-react';
 
 export default function KothakomDashboard() {
   const { user, isUserLoading } = useUser();
@@ -46,10 +46,10 @@ export default function KothakomDashboard() {
             <div className="text-center mb-12">
                 <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">Admin Dashboard</h1>
                 <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-xl">
-                    View and manage your website leads.
+                    View and manage your website leads and tasks.
                 </p>
             </div>
-            <div className="grid gap-8 md:grid-cols-2">
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                 <Link href="/kothakom/call-requests">
                     <Card className="bg-card hover:bg-card/80 transition-colors border-border/60 hover:-translate-y-2 duration-300 h-full">
                         <CardHeader className="flex flex-row items-center gap-4">
@@ -75,6 +75,20 @@ export default function KothakomDashboard() {
                         </CardHeader>
                         <CardContent>
                             <p>Read and manage all messages submitted through the contact form.</p>
+                        </CardContent>
+                    </Card>
+                </Link>
+                 <Link href="/kothakom/tasks">
+                     <Card className="bg-card hover:bg-card/80 transition-colors border-border/60 hover:-translate-y-2 duration-300 h-full">
+                        <CardHeader className="flex flex-row items-center gap-4">
+                            <ListChecks className="h-10 w-10 text-primary" />
+                            <div>
+                                <CardTitle className="text-2xl">Tasks</CardTitle>
+                                <CardDescription className="mt-1">Manage your internal tasks.</CardDescription>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <p>Create, track, and complete your project tasks.</p>
                         </CardContent>
                     </Card>
                 </Link>
