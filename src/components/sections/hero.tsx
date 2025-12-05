@@ -9,11 +9,16 @@ const Hero = () => {
     return (
         <section id="home" className="relative h-dvh min-h-[700px] w-full flex items-center justify-center text-center overflow-hidden">
             <div className="absolute inset-0 bg-background">
-                <FloatingLines
+                <FloatingLines 
                   linesGradient={['#88FFF2', '#00FFFF']}
                   animationSpeed={0.5}
-                  lineCount={50}
-                  lineDistance={0.01}
+                  enabledWaves={['top', 'middle', 'bottom']}
+                  lineCount={[10, 15, 20]}
+                  lineDistance={[8, 6, 4]}
+                  bendRadius={5.0}
+                  bendStrength={-0.5}
+                  interactive={true}
+                  parallax={true}
                 />
             </div>
             <div className="absolute inset-0 bg-gradient-to-b from-background/0 via-background/60 to-background"></div>
