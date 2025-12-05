@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CloudCog, DatabaseZap, Network, Shield, TabletSmartphone, Users } from 'lucide-react';
+import { CloudCog, DatabaseZap, Network, Shield, Users, Code } from 'lucide-react';
 
 const services = [
   {
@@ -28,9 +28,9 @@ const services = [
     description: 'Strategic IT guidance to help you achieve your business objectives.',
   },
   {
-    icon: <TabletSmartphone className="h-10 w-10 text-primary" />,
-    title: 'Mobile Device Management',
-    description: 'Secure and manage your company’s mobile devices with ease.',
+    icon: <Code className="h-10 w-10 text-primary" />,
+    title: 'Web Development',
+    description: 'Custom website and web application development to serve your customers.',
   },
 ];
 
