@@ -9,12 +9,23 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MessageSquare } from 'lucide-react';
-import { useFirebase, useUser, useMemoFirebase, useCollection, addDocumentNonBlocking } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { PlusCircle, MessageSquare, Pencil, Trash2 } from 'lucide-react';
+import { useFirebase, useUser, useMemoFirebase, useCollection, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Note = {
   id: string;
@@ -31,6 +42,8 @@ interface NotesDialogProps {
 export function NotesDialog({ collectionPath, documentId }: NotesDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [newNote, setNewNote] = useState('');
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState('');
   const { firestore } = useFirebase();
   const { user } = useUser();
 
@@ -55,6 +68,30 @@ export function NotesDialog({ collectionPath, documentId }: NotesDialogProps) {
     });
     setNewNote('');
   };
+
+  const handleEditNote = (note: Note) => {
+    setEditingNoteId(note.id);
+    setEditingContent(note.content);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingNoteId(null);
+    setEditingContent('');
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingNoteId || !firestore) return;
+    const noteRef = doc(firestore, collectionPath, documentId, 'notes', editingNoteId);
+    updateDocumentNonBlocking(noteRef, { content: editingContent });
+    handleCancelEdit();
+  };
+  
+  const handleDeleteNote = (noteId: string) => {
+    if (!firestore) return;
+    const noteRef = doc(firestore, collectionPath, documentId, 'notes', noteId);
+    deleteDocumentNonBlocking(noteRef);
+  };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -89,11 +126,53 @@ export function NotesDialog({ collectionPath, documentId }: NotesDialogProps) {
                     </div>
                 )}
                 {notes?.map((note) => (
-                    <div key={note.id} className="text-sm p-3 bg-muted/50 rounded-lg">
-                        <p className="whitespace-pre-wrap">{note.content}</p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                            {note.createdBy} - {format(new Date(note.createdAt), 'PPP p')}
-                        </p>
+                    <div key={note.id} className="text-sm p-3 bg-muted/50 rounded-lg group">
+                       {editingNoteId === note.id ? (
+                                <div className='space-y-2'>
+                                    <Textarea
+                                        value={editingContent}
+                                        onChange={(e) => setEditingContent(e.target.value)}
+                                        className="min-h-[100px]"
+                                    />
+                                    <div className='flex justify-end gap-2'>
+                                        <Button variant="ghost" size="sm" onClick={handleCancelEdit}>Cancel</Button>
+                                        <Button size="sm" onClick={handleSaveEdit}>Save</Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <p className="whitespace-pre-wrap">{note.content}</p>
+                                    <div className='flex justify-between items-center'>
+                                        <p className="text-xs text-muted-foreground mt-2">
+                                            {note.createdBy} - {format(new Date(note.createdAt), 'PPP p')}
+                                        </p>
+                                        <div className='opacity-0 group-hover:opacity-100 transition-opacity flex gap-1'>
+                                            <Button variant='ghost' size='icon' className='h-7 w-7' onClick={() => handleEditNote(note)}>
+                                                <Pencil className='h-4 w-4' />
+                                            </Button>
+                                            <AlertDialog>
+                                              <AlertDialogTrigger asChild>
+                                                <Button variant='ghost' size='icon' className='h-7 w-7 hover:bg-destructive/10 hover:text-destructive'>
+                                                    <Trash2 className='h-4 w-4' />
+                                                </Button>
+                                              </AlertDialogTrigger>
+                                              <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                  <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete this note.
+                                                  </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                  <AlertDialogAction onClick={() => handleDeleteNote(note.id)}>Delete</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                              </AlertDialogContent>
+                                            </AlertDialog>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                     </div>
                 ))}
             </div>

@@ -8,11 +8,9 @@ service cloud.firestore {
       // Only authenticated users can read/list submissions
       allow get, list: if request.auth != null;
 
-      // Allow authenticated users to update the status field.
-      // This rule ensures that only the 'status' field can be modified in an update operation.
-      // It compares the incoming data (request.resource.data) with the existing data (resource.data).
+      // Allow authenticated users to update the status field, ensuring other fields are untouched.
       allow update: if request.auth != null 
-                    && request.resource.data.keys().hasOnly(['status']);
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
       
       // Nobody can delete submissions from the client
       allow delete: if false;
@@ -31,9 +29,9 @@ service cloud.firestore {
       // Only authenticated users can read/list requests
       allow get, list: if request.auth != null;
       
-      // Allow authenticated users to update the status field.
+      // Allow authenticated users to update the status field, ensuring other fields are untouched.
       allow update: if request.auth != null
-                    && request.resource.data.keys().hasOnly(['status']);
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
       
       // Nobody can delete requests from the client
       allow delete: if false;
