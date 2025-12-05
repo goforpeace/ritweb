@@ -139,9 +139,9 @@ const Contact = () => {
             <div className="h-full w-full min-h-[400px] lg:min-h-0 rounded-lg overflow-hidden relative">
               <Image
                 src={mapImage.imageUrl}
-                alt="Map"
+                alt={mapImage.description}
                 fill
-                className="object-cover"
+                className="object-contain"
                 data-ai-hint={mapImage.imageHint}
               />
             </div>
