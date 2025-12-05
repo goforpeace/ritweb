@@ -3,14 +3,20 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import FloatingLines from '../ui/floating-lines';
 
 const Hero = () => {
     return (
         <section id="home" className="relative h-dvh min-h-[700px] w-full flex items-center justify-center text-center overflow-hidden">
-            <div className="absolute inset-0">
-                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm"></div>
-                <div className="absolute inset-0 bg-gradient-to-b from-background/0 via-background/0 to-background"></div>
+            <div className="absolute inset-0 bg-background">
+                <FloatingLines
+                  linesGradient={['#88FFF2', '#00FFFF']}
+                  animationSpeed={0.5}
+                  lineCount={50}
+                  lineDistance={0.01}
+                />
             </div>
+            <div className="absolute inset-0 bg-gradient-to-b from-background/0 via-background/60 to-background"></div>
 
             <div className="relative z-10 container px-4 md:px-6">
                 <div className="flex flex-col items-center">
