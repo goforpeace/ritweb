@@ -4,13 +4,15 @@ import { useFirebase, useUser, useMemoFirebase, useCollection } from '@/firebase
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import Header from '@/components/sections/header';
 import Footer from '@/components/sections/footer';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import type { Status } from '@/components/kothakom/StatusBadge';
+import { StatusBadge } from '@/components/kothakom/StatusBadge';
+import { NotesDialog } from '@/components/kothakom/NotesDialog';
 
 type ContactFormSubmission = {
   id: string;
@@ -19,6 +21,7 @@ type ContactFormSubmission = {
   company?: string;
   message: string;
   submissionDate: string;
+  status: Status;
 };
 
 export default function ContactSubmissionsPage() {
@@ -84,10 +87,12 @@ export default function ContactSubmissionsPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Date</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Company</TableHead>
                         <TableHead>Message</TableHead>
+                        <TableHead>Notes</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -96,14 +101,18 @@ export default function ContactSubmissionsPage() {
                         .map((submission) => (
                           <TableRow key={submission.id}>
                             <TableCell className="whitespace-nowrap">
-                              <Badge variant="outline">
                                 {format(new Date(submission.submissionDate), "PPP p")}
-                              </Badge>
+                            </TableCell>
+                             <TableCell>
+                                <StatusBadge currentStatus={submission.status || 'New'} collectionPath="contact_form_submissions" documentId={submission.id} />
                             </TableCell>
                             <TableCell>{submission.name}</TableCell>
                             <TableCell>{submission.email}</TableCell>
                             <TableCell>{submission.company || 'N/A'}</TableCell>
                             <TableCell className="max-w-sm truncate">{submission.message}</TableCell>
+                            <TableCell>
+                                <NotesDialog collectionPath='contact_form_submissions' documentId={submission.id} />
+                            </TableCell>
                           </TableRow>
                         ))}
                     </TableBody>

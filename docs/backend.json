@@ -31,6 +31,16 @@
           "type": "string",
           "description": "The date and time the form was submitted.",
           "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the submission.",
+          "enum": [
+            "New",
+            "Contacted",
+            "Follow up",
+            "Closed"
+          ]
         }
       },
       "required": [
@@ -68,6 +78,16 @@
           "type": "string",
           "description": "The date and time the request was submitted.",
           "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the call request.",
+          "enum": [
+            "New",
+            "Contacted",
+            "Follow up",
+            "Closed"
+          ]
         }
       },
       "required": [
@@ -76,6 +96,38 @@
         "email",
         "phone",
         "submissionDate"
+      ]
+    },
+    "Note": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Note",
+      "type": "object",
+      "description": "Represents a note added to a submission or request.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the note."
+        },
+        "content": {
+          "type": "string",
+          "description": "The content of the note."
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "The email of the user who created the note.",
+          "format": "email"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "The date and time the note was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "content",
+        "createdBy",
+        "createdAt"
       ]
     }
   },
@@ -94,11 +146,31 @@
           "schema": {
             "$ref": "#/backend/entities/ContactFormSubmission"
           },
-          "description": "Stores contact form submissions.  No denormalized authorization fields are needed because access will be managed via a separate admin role system (DBAC).",
+          "description": "Stores contact form submissions.",
           "params": [
             {
               "name": "submissionId",
               "description": "Unique identifier for the contact form submission."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/contact_form_submissions/{submissionId}/notes/{noteId}",
+        "definition": {
+          "entityName": "Note",
+          "schema": {
+            "$ref": "#/backend/entities/Note"
+          },
+          "description": "Stores notes for a specific contact form submission.",
+          "params": [
+            {
+              "name": "submissionId",
+              "description": "The ID of the parent contact form submission."
+            },
+            {
+              "name": "noteId",
+              "description": "Unique identifier for the note."
             }
           ]
         }
@@ -118,8 +190,28 @@
             }
           ]
         }
+      },
+      {
+        "path": "/call_requests/{requestId}/notes/{noteId}",
+        "definition": {
+          "entityName": "Note",
+          "schema": {
+            "$ref": "#/backend/entities/Note"
+          },
+          "description": "Stores notes for a specific call request.",
+          "params": [
+            {
+              "name": "requestId",
+              "description": "The ID of the parent call request."
+            },
+            {
+              "name": "noteId",
+              "description": "Unique identifier for the note."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "This design prioritizes security and scalability for handling contact form submissions. All submissions are stored in a single collection, `/contact_form_submissions`, making listing submissions straightforward. No authorization dependencies exist as the dashboard will likely require admin access, which will be implemented out-of-scope using a separate authentication and role management system, as per the DBAC principle (Database Authentication and Authorization). This allows for future expansion without impacting the core security model of contact form submissions. The structure is simple and avoids any complex authorization rules, enabling efficient queries and updates."
+    "reasoning": "This design prioritizes security and scalability for handling contact form submissions. All submissions are stored in a single collection, `/contact_form_submissions`, making listing submissions straightforward. No authorization dependencies exist as the dashboard will likely require admin access, which will be implemented out-of-scope using a separate authentication and role management system, as per the DBAC principle (Database Authentication and Authorization). This allows for future expansion without impacting the core security model of contact form submissions. The structure is simple and avoids any complex authorization rules, enabling efficient queries and updates. Subcollections for notes are added to keep related data together."
   }
 }

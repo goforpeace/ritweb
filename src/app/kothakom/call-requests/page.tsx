@@ -1,16 +1,18 @@
 'use client';
 
 import { useFirebase, useUser, useMemoFirebase, useCollection } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import Header from '@/components/sections/header';
 import Footer from '@/components/sections/footer';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import type { Status } from '@/components/kothakom/StatusBadge';
+import { StatusBadge } from '@/components/kothakom/StatusBadge';
+import { NotesDialog } from '@/components/kothakom/NotesDialog';
 
 type CallRequest = {
     id: string;
@@ -18,6 +20,7 @@ type CallRequest = {
     email: string;
     phone: string;
     submissionDate: string;
+    status: Status;
 };
 
 export default function CallRequestsPage() {
@@ -83,9 +86,11 @@ export default function CallRequestsPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Date</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Phone</TableHead>
+                        <TableHead>Notes</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -94,13 +99,17 @@ export default function CallRequestsPage() {
                         .map((request) => (
                           <TableRow key={request.id}>
                             <TableCell className="whitespace-nowrap">
-                              <Badge variant="outline">
                                 {format(new Date(request.submissionDate), "PPP p")}
-                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                                <StatusBadge currentStatus={request.status || 'New'} collectionPath="call_requests" documentId={request.id} />
                             </TableCell>
                             <TableCell>{request.name}</TableCell>
                             <TableCell>{request.email}</TableCell>
                             <TableCell>{request.phone}</TableCell>
+                            <TableCell>
+                                <NotesDialog collectionPath='call_requests' documentId={request.id} />
+                            </TableCell>
                           </TableRow>
                         ))}
                     </TableBody>

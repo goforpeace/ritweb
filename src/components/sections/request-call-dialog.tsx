@@ -61,6 +61,7 @@ export default function RequestCallDialog() {
     addDocumentNonBlocking(requestsCollection, {
       ...values,
       submissionDate: new Date().toISOString(),
+      status: "New",
     });
 
     toast({

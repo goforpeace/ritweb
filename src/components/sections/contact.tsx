@@ -57,6 +57,7 @@ const Contact = () => {
     addDocumentNonBlocking(submissionsCollection, {
         ...values,
         submissionDate: new Date().toISOString(),
+        status: "New",
     });
 
     toast({
