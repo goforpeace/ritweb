@@ -62,7 +62,7 @@ export default function TasksPage() {
             <CardContent className="flex flex-col gap-4 items-center">
               <p>Please log in to access the dashboard.</p>
               <Button asChild>
-                <Link href="/login">Go to Login</Link>
+                <Link href="/cmi">Go to Login</Link>
               </Button>
             </CardContent>
           </Card>
