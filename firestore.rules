@@ -11,5 +11,16 @@ service cloud.firestore {
       // Nobody can update or delete submissions from the client
       allow update, delete: if false;
     }
+    
+    match /call_requests/{requestId} {
+      // Allow anyone to create a request
+      allow create: if true;
+      
+      // Only authenticated users can read/list requests
+      allow get, list: if request.auth != null;
+      
+      // Nobody can update or delete requests from the client
+      allow update, delete: if false;
+    }
   }
 }

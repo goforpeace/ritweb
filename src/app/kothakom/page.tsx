@@ -20,16 +20,30 @@ type ContactFormSubmission = {
   submissionDate: string;
 };
 
+type CallRequest = {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    submissionDate: string;
+};
+
 export default function KothakomDashboard() {
   const { firestore } = useFirebase();
   const { user, isUserLoading } = useUser();
 
-  const submissionsRef = useMemoFirebase(() => {
+  const contactSubmissionsRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return collection(firestore, 'contact_form_submissions');
   }, [firestore, user]);
+  
+  const callRequestsRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return collection(firestore, 'call_requests');
+  }, [firestore, user]);
 
-  const { data: submissions, isLoading } = useCollection<ContactFormSubmission>(submissionsRef);
+  const { data: contactSubmissions, isLoading: isLoadingContacts } = useCollection<ContactFormSubmission>(contactSubmissionsRef);
+  const { data: callRequests, isLoading: isLoadingRequests } = useCollection<CallRequest>(callRequestsRef);
 
   if (isUserLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -62,16 +76,57 @@ export default function KothakomDashboard() {
     <div className="flex flex-col min-h-dvh">
       <Header />
       <main className="flex-1 py-12 px-4 md:px-6">
-        <div className="container mx-auto">
+        <div className="container mx-auto space-y-12">
+          <Card>
+            <CardHeader>
+              <CardTitle>Call Requests</CardTitle>
+              <CardDescription>Leads from the "Request a Call" button.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingRequests && <p>Loading call requests...</p>}
+              {!isLoadingRequests && (!callRequests || callRequests.length === 0) && <p>No call requests yet.</p>}
+              {!isLoadingRequests && callRequests && callRequests.length > 0 && (
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {callRequests
+                        .sort((a, b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime())
+                        .map((request) => (
+                          <TableRow key={request.id}>
+                            <TableCell className="whitespace-nowrap">
+                              <Badge variant="outline">
+                                {format(new Date(request.submissionDate), "PPP p")}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{request.name}</TableCell>
+                            <TableCell>{request.email}</TableCell>
+                            <TableCell>{request.phone}</TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
           <Card>
             <CardHeader>
               <CardTitle>Contact Form Submissions</CardTitle>
-              <CardDescription>Messages received from your website.</CardDescription>
+              <CardDescription>Messages received from your contact form.</CardDescription>
             </CardHeader>
             <CardContent>
-              {isLoading && <p>Loading submissions...</p>}
-              {!isLoading && (!submissions || submissions.length === 0) && <p>No submissions yet.</p>}
-              {!isLoading && submissions && submissions.length > 0 && (
+              {isLoadingContacts && <p>Loading submissions...</p>}
+              {!isLoadingContacts && (!contactSubmissions || contactSubmissions.length === 0) && <p>No submissions yet.</p>}
+              {!isLoadingContacts && contactSubmissions && contactSubmissions.length > 0 && (
                 <div className="border rounded-md">
                   <Table>
                     <TableHeader>
@@ -84,7 +139,7 @@ export default function KothakomDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {submissions
+                      {contactSubmissions
                         .sort((a, b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime())
                         .map((submission) => (
                           <TableRow key={submission.id}>

@@ -40,6 +40,43 @@
         "message",
         "submissionDate"
       ]
+    },
+    "CallRequest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CallRequest",
+      "type": "object",
+      "description": "Represents a request for a call back from a potential client.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the call request."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the person requesting the call."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the person requesting the call.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "The phone number of the person requesting the call."
+        },
+        "submissionDate": {
+          "type": "string",
+          "description": "The date and time the request was submitted.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "phone",
+        "submissionDate"
+      ]
     }
   },
   "auth": {
@@ -62,6 +99,22 @@
             {
               "name": "submissionId",
               "description": "Unique identifier for the contact form submission."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/call_requests/{requestId}",
+        "definition": {
+          "entityName": "CallRequest",
+          "schema": {
+            "$ref": "#/backend/entities/CallRequest"
+          },
+          "description": "Stores call back requests from potential clients.",
+          "params": [
+            {
+              "name": "requestId",
+              "description": "Unique identifier for the call request."
             }
           ]
         }
