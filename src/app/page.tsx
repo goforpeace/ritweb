@@ -6,6 +6,7 @@ import Portfolio from '@/components/sections/portfolio';
 import Testimonials from '@/components/sections/testimonials';
 import Contact from '@/components/sections/contact';
 import Footer from '@/components/sections/footer';
+import AnimatedContent from '@/components/ui/animated-content';
 
 export default function Home() {
   return (
@@ -13,11 +14,21 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <Hero />
-        <Highlights />
-        <Services />
-        <Portfolio />
-        <Testimonials />
-        <Contact />
+        <AnimatedContent>
+          <Highlights />
+        </AnimatedContent>
+        <AnimatedContent>
+          <Services />
+        </AnimatedContent>
+        <AnimatedContent>
+          <Portfolio />
+        </AnimatedContent>
+        <AnimatedContent>
+          <Testimonials />
+        </AnimatedContent>
+        <AnimatedContent>
+          <Contact />
+        </AnimatedContent>
       </main>
       <Footer />
     </div>
