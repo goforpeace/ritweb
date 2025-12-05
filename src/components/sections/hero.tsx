@@ -27,7 +27,7 @@ const Hero = () => {
 
       <div className="relative z-10 container px-4 md:px-6">
         <div className="flex flex-col items-center">
-          <div>
+          <div className="w-full">
             <SplitText
               tag="h1"
               text="Powering Your Business with Smart IT Solutions"
