@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import FloatingLines from '../ui/floating-lines';
+import SplitText from '../ui/split-text';
 
 const Hero = () => {
     return (
@@ -26,9 +27,17 @@ const Hero = () => {
             <div className="relative z-10 container px-4 md:px-6">
                 <div className="flex flex-col items-center">
                     <div>
-                      <h1 className="text-4xl font-extrabold tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl !leading-tight">
-                          Powering Your Business with Smart IT Solutions
-                      </h1>
+                      <SplitText
+                        tag="h1"
+                        text="Powering Your Business with Smart IT Solutions"
+                        className="text-4xl font-extrabold tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl !leading-tight"
+                        splitType="chars"
+                        delay={20}
+                        from={{ opacity: 0, y: 50, scale: 0.9 }}
+                        to={{ opacity: 1, y: 0, scale: 1 }}
+                        duration={0.8}
+                        ease="power3.out"
+                      />
                     </div>
                     <div>
                         <p className="mx-auto mt-6 max-w-[700px] text-lg text-muted-foreground md:text-xl">
