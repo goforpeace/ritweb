@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, MessageSquare } from 'lucide-react';
 import { useFirebase, useUser, useMemoFirebase, useCollection, addDocumentNonBlocking } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
 
@@ -68,14 +68,15 @@ export function NotesDialog({ collectionPath, documentId }: NotesDialogProps) {
           <DialogTitle>Notes</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="flex gap-2">
-            <Input
+          <div className="flex flex-col gap-2">
+            <Textarea
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
               placeholder="Add a new note..."
+              className='min-h-[100px]'
             />
-            <Button onClick={handleAddNote} disabled={!newNote.trim()}>
-              Add
+            <Button onClick={handleAddNote} disabled={!newNote.trim()} className='w-full'>
+              Add Note
             </Button>
           </div>
           <ScrollArea className="h-64">
