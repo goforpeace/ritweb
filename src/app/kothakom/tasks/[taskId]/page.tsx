@@ -11,6 +11,7 @@ import { ArrowLeft } from 'lucide-react';
 import type { TaskStatus } from '@/components/kothakom/TaskStatusBadge';
 import { TaskStatusBadge } from '@/components/kothakom/TaskStatusBadge';
 import { TaskNotes } from '@/components/kothakom/TaskNotes';
+import EditTaskDialog from '@/components/kothakom/EditTaskDialog';
 
 type Task = {
   id: string;
@@ -105,7 +106,10 @@ export default function TaskDetailPage({ params }: { params: { taskId: string } 
                             <CardTitle className="text-3xl mb-2">{task.title}</CardTitle>
                             <CardDescription>Task Details</CardDescription>
                         </div>
-                        <TaskStatusBadge currentStatus={task.status || 'New'} documentId={task.id} />
+                        <div className='flex items-center gap-2'>
+                          <EditTaskDialog task={task} />
+                          <TaskStatusBadge currentStatus={task.status || 'New'} documentId={task.id} />
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent>

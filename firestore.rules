@@ -12,7 +12,7 @@ service cloud.firestore {
       // This rule ensures that only the 'status' field can be modified in an update operation.
       // It compares the incoming data (request.resource.data) with the existing data (resource.data).
       allow update: if request.auth != null 
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+                    && request.resource.data.keys().hasOnly(['status']);
       
       // Nobody can delete submissions from the client
       allow delete: if false;
@@ -20,7 +20,7 @@ service cloud.firestore {
       match /notes/{noteId} {
         // Only authenticated users can manage notes
         allow read, list, create: if request.auth != null;
-        allow update, delete: if false;
+        allow update, delete: if request.auth != null;
       }
     }
     
@@ -33,7 +33,7 @@ service cloud.firestore {
       
       // Allow authenticated users to update the status field.
       allow update: if request.auth != null
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+                    && request.resource.data.keys().hasOnly(['status']);
       
       // Nobody can delete requests from the client
       allow delete: if false;
@@ -41,7 +41,7 @@ service cloud.firestore {
       match /notes/{noteId} {
         // Only authenticated users can manage notes
         allow read, list, create: if request.auth != null;
-        allow update, delete: if false;
+        allow update, delete: if request.auth != null;
       }
     }
 
@@ -52,7 +52,7 @@ service cloud.firestore {
       match /notes/{noteId} {
         // Only authenticated users can manage notes
         allow read, list, create: if request.auth != null;
-        allow update, delete: if false;
+        allow update, delete: if request.auth != null;
       }
     }
   }
