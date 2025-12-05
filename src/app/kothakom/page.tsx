@@ -1,49 +1,15 @@
 'use client';
 
-import { useFirebase, useUser, useMemoFirebase, useCollection } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
 import Header from '@/components/sections/header';
 import Footer from '@/components/sections/footer';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-
-type ContactFormSubmission = {
-  id: string;
-  name: string;
-  email: string;
-  company?: string;
-  message: string;
-  submissionDate: string;
-};
-
-type CallRequest = {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    submissionDate: string;
-};
+import { Phone, Mail } from 'lucide-react';
 
 export default function KothakomDashboard() {
-  const { firestore } = useFirebase();
   const { user, isUserLoading } = useUser();
-
-  const contactSubmissionsRef = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    return collection(firestore, 'contact_form_submissions');
-  }, [firestore, user]);
-  
-  const callRequestsRef = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    return collection(firestore, 'call_requests');
-  }, [firestore, user]);
-
-  const { data: contactSubmissions, isLoading: isLoadingContacts } = useCollection<ContactFormSubmission>(contactSubmissionsRef);
-  const { data: callRequests, isLoading: isLoadingRequests } = useCollection<CallRequest>(callRequestsRef);
 
   if (isUserLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -76,90 +42,43 @@ export default function KothakomDashboard() {
     <div className="flex flex-col min-h-dvh">
       <Header />
       <main className="flex-1 py-12 px-4 md:px-6">
-        <div className="container mx-auto space-y-12">
-          <Card>
-            <CardHeader>
-              <CardTitle>Call Requests</CardTitle>
-              <CardDescription>Leads from the "Request a Call" button.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoadingRequests && <p>Loading call requests...</p>}
-              {!isLoadingRequests && (!callRequests || callRequests.length === 0) && <p>No call requests yet.</p>}
-              {!isLoadingRequests && callRequests && callRequests.length > 0 && (
-                <div className="border rounded-md">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {callRequests
-                        .sort((a, b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime())
-                        .map((request) => (
-                          <TableRow key={request.id}>
-                            <TableCell className="whitespace-nowrap">
-                              <Badge variant="outline">
-                                {format(new Date(request.submissionDate), "PPP p")}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>{request.name}</TableCell>
-                            <TableCell>{request.email}</TableCell>
-                            <TableCell>{request.phone}</TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Form Submissions</CardTitle>
-              <CardDescription>Messages received from your contact form.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoadingContacts && <p>Loading submissions...</p>}
-              {!isLoadingContacts && (!contactSubmissions || contactSubmissions.length === 0) && <p>No submissions yet.</p>}
-              {!isLoadingContacts && contactSubmissions && contactSubmissions.length > 0 && (
-                <div className="border rounded-md">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Company</TableHead>
-                        <TableHead>Message</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {contactSubmissions
-                        .sort((a, b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime())
-                        .map((submission) => (
-                          <TableRow key={submission.id}>
-                            <TableCell className="whitespace-nowrap">
-                              <Badge variant="outline">
-                                {format(new Date(submission.submissionDate), "PPP p")}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>{submission.name}</TableCell>
-                            <TableCell>{submission.email}</TableCell>
-                            <TableCell>{submission.company || 'N/A'}</TableCell>
-                            <TableCell className="max-w-sm truncate">{submission.message}</TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        <div className="container mx-auto">
+            <div className="text-center mb-12">
+                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">Admin Dashboard</h1>
+                <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-xl">
+                    View and manage your website leads.
+                </p>
+            </div>
+            <div className="grid gap-8 md:grid-cols-2">
+                <Link href="/kothakom/call-requests">
+                    <Card className="bg-card hover:bg-card/80 transition-colors border-border/60 hover:-translate-y-2 duration-300 h-full">
+                        <CardHeader className="flex flex-row items-center gap-4">
+                            <Phone className="h-10 w-10 text-primary" />
+                            <div>
+                                <CardTitle className="text-2xl">Call Requests</CardTitle>
+                                <CardDescription className="mt-1">Leads from the "Request a Call" button.</CardDescription>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <p>View all potential clients who have requested a callback.</p>
+                        </CardContent>
+                    </Card>
+                </Link>
+                <Link href="/kothakom/contact-submissions">
+                     <Card className="bg-card hover:bg-card/80 transition-colors border-border/60 hover:-translate-y-2 duration-300 h-full">
+                        <CardHeader className="flex flex-row items-center gap-4">
+                            <Mail className="h-10 w-10 text-primary" />
+                            <div>
+                                <CardTitle className="text-2xl">Contact Submissions</CardTitle>
+                                <CardDescription className="mt-1">Messages from your contact form.</CardDescription>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <p>Read and manage all messages submitted through the contact form.</p>
+                        </CardContent>
+                    </Card>
+                </Link>
+            </div>
         </div>
       </main>
       <Footer />
