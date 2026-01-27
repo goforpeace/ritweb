@@ -21,6 +21,8 @@ interface UserSelectProps {
     field: ControllerRenderProps<any, 'assignedTo'>;
 }
 
+const UNASSIGNED_SENTINEL = 'unassigned-sentinel-value';
+
 export default function UserSelect({ field }: UserSelectProps) {
     const { firestore } = useFirebase();
 
@@ -31,17 +33,28 @@ export default function UserSelect({ field }: UserSelectProps) {
 
     const { data: users, isLoading } = useCollection<UserProfile>(usersRef);
 
+    const handleValueChange = (value: string) => {
+        if (value === UNASSIGNED_SENTINEL) {
+            field.onChange('');
+        } else {
+            field.onChange(value);
+        }
+    };
+
+    const displayValue = field.value ? field.value : UNASSIGNED_SENTINEL;
+
+
     return (
         <Select
-            onValueChange={field.onChange}
-            value={field.value || ''}
+            onValueChange={handleValueChange}
+            value={displayValue}
             disabled={isLoading}
         >
             <SelectTrigger>
                 <SelectValue placeholder={isLoading ? "Loading users..." : "Select a user"} />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value="">Unassigned</SelectItem>
+                <SelectItem value={UNASSIGNED_SENTINEL}>Unassigned</SelectItem>
                 {users?.map(user => (
                     <SelectItem key={user.id} value={user.email}>
                         {user.name}
