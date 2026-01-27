@@ -139,7 +139,7 @@ export default function TaskDetailPage({ params }: { params: { taskId: string } 
                 <CardContent className="space-y-6 pt-6">
                     <div>
                         <h3 className="font-semibold mb-2 text-primary">Summary</h3>
-                        <p className="text-muted-foreground whitespace-pre-wrap">{task.summary}</p>
+                        <p className="text-muted-foreground whitespace-pre-wrap break-words">{task.summary}</p>
                     </div>
                     
                     <Separator />
