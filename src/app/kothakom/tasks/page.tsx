@@ -24,7 +24,7 @@ type Task = {
   summary: string;
   createdAt: string;
   status: TaskStatus;
-  assignedTo?: string;
+  assignedTo?: string[];
 };
 
 export default function TasksPage() {
@@ -48,7 +48,7 @@ export default function TasksPage() {
   const filteredTasks = useMemo(() => {
     return tasks?.filter(task => {
         const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesAssignee = !showMyTasks || (task.assignedTo === user?.email);
+        const matchesAssignee = !showMyTasks || (task.assignedTo && task.assignedTo.includes(user?.email || ''));
         return matchesSearch && matchesAssignee;
     });
   }, [tasks, searchTerm, showMyTasks, user]);
@@ -154,7 +154,7 @@ export default function TasksPage() {
                             </TableCell>
                             <TableCell>
                                 <Link href={`/kothakom/tasks/${task.id}`} className="block w-full h-full">
-                                    {task.assignedTo || 'Unassigned'}
+                                    {(task.assignedTo && task.assignedTo.length > 0) ? `${task.assignedTo.length} user(s)` : 'Unassigned'}
                                 </Link>
                             </TableCell>
                           </TableRow>

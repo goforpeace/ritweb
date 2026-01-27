@@ -163,9 +163,12 @@
           ]
         },
         "assignedTo": {
-          "type": "string",
-          "description": "The email of the user this task is assigned to.",
-          "format": "email"
+          "type": "array",
+          "description": "A list of emails of the users this task is assigned to.",
+          "items": {
+            "type": "string",
+            "format": "email"
+          }
         }
       },
       "required": [

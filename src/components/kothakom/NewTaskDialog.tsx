@@ -33,7 +33,7 @@ import UserSelect from './UserSelect';
 const formSchema = z.object({
   title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
   summary: z.string().min(10, { message: 'Summary must be at least 10 characters.' }),
-  assignedTo: z.string().email({ message: 'Please enter a valid email.' }).optional().or(z.literal('')),
+  assignedTo: z.array(z.string().email()).optional(),
 });
 
 export default function NewTaskDialog() {
@@ -46,7 +46,7 @@ export default function NewTaskDialog() {
     defaultValues: {
       title: '',
       summary: '',
-      assignedTo: '',
+      assignedTo: [],
     },
   });
 
@@ -64,7 +64,7 @@ export default function NewTaskDialog() {
     addDocumentNonBlocking(tasksCollection, {
       title: values.title,
       summary: values.summary,
-      assignedTo: values.assignedTo || null,
+      assignedTo: values.assignedTo || [],
       createdAt: new Date().toISOString(),
       status: "New",
     });

@@ -12,6 +12,7 @@ import type { TaskStatus } from '@/components/kothakom/TaskStatusBadge';
 import { TaskStatusBadge } from '@/components/kothakom/TaskStatusBadge';
 import { TaskNotes } from '@/components/kothakom/TaskNotes';
 import EditTaskDialog from '@/components/kothakom/EditTaskDialog';
+import { Badge } from '@/components/ui/badge';
 
 type Task = {
   id: string;
@@ -19,7 +20,7 @@ type Task = {
   summary: string;
   createdAt: string;
   status: TaskStatus;
-  assignedTo?: string;
+  assignedTo?: string[];
 };
 
 export default function TaskDetailPage({ params }: { params: { taskId: string } }) {
@@ -117,11 +118,18 @@ export default function TaskDetailPage({ params }: { params: { taskId: string } 
                     <h3 className="font-semibold mb-2 mt-4">Summary</h3>
                     <p className="text-muted-foreground whitespace-pre-wrap">{task.summary}</p>
                     
-                    <div className="flex items-center justify-between mt-4">
-                        <h3 className="font-semibold">Assigned To</h3>
-                        <EditTaskDialog task={task} />
+                    <div className="mt-4">
+                        <h3 className="font-semibold mb-2">Assigned To</h3>
+                        <div className="flex flex-wrap gap-2">
+                           {task.assignedTo && task.assignedTo.length > 0 ? (
+                                task.assignedTo.map(email => (
+                                    <Badge key={email} variant="secondary">{email}</Badge>
+                                ))
+                            ) : (
+                                <p className="text-muted-foreground">Unassigned</p>
+                            )}
+                        </div>
                     </div>
-                    <p className="text-muted-foreground">{task.assignedTo || 'Unassigned'}</p>
                 </CardContent>
             </Card>
 
