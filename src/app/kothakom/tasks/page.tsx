@@ -14,7 +14,9 @@ import type { TaskStatus } from '@/components/kothakom/TaskStatusBadge';
 import { TaskStatusBadge } from '@/components/kothakom/TaskStatusBadge';
 import NewTaskDialog from '@/components/kothakom/NewTaskDialog';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 type Task = {
   id: string;
@@ -22,12 +24,14 @@ type Task = {
   summary: string;
   createdAt: string;
   status: TaskStatus;
+  assignedTo?: string;
 };
 
 export default function TasksPage() {
   const { firestore } = useFirebase();
   const { user, isUserLoading } = useUser();
   const [searchTerm, setSearchTerm] = useState('');
+  const [showMyTasks, setShowMyTasks] = useState(false);
 
   const tasksRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -41,9 +45,14 @@ export default function TasksPage() {
 
   const { data: tasks, isLoading: isLoadingTasks } = useCollection<Task>(tasksQuery);
 
-  const filteredTasks = tasks?.filter(task => 
-    task.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTasks = useMemo(() => {
+    return tasks?.filter(task => {
+        const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesAssignee = !showMyTasks || (task.assignedTo === user?.email);
+        return matchesSearch && matchesAssignee;
+    });
+  }, [tasks, searchTerm, showMyTasks, user]);
+
 
   if (isUserLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -93,15 +102,21 @@ export default function TasksPage() {
               <CardDescription>Manage your internal project tasks.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input 
-                        placeholder="Search tasks by title..." 
-                        className="pl-10"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-              </div>
+                <div className="flex justify-between items-center gap-4">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input 
+                            placeholder="Search tasks by title..." 
+                            className="pl-10"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Switch id="my-tasks-filter" checked={showMyTasks} onCheckedChange={setShowMyTasks} />
+                        <Label htmlFor="my-tasks-filter">Show My Tasks</Label>
+                    </div>
+                </div>
               {isLoadingTasks && <p>Loading tasks...</p>}
               {!isLoadingTasks && (!filteredTasks || filteredTasks.length === 0) && <p>No tasks found.</p>}
               {!isLoadingTasks && filteredTasks && filteredTasks.length > 0 && (
@@ -113,6 +128,7 @@ export default function TasksPage() {
                         <TableHead>Created</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Title</TableHead>
+                        <TableHead>Assigned To</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -120,7 +136,7 @@ export default function TasksPage() {
                           <TableRow key={task.id} className="cursor-pointer hover:bg-muted/50">
                             <TableCell className="font-mono">
                                 <Link href={`/kothakom/tasks/${task.id}`} className="block w-full h-full">
-                                    {String(tasks.length - index).padStart(2, '0')}
+                                    {String((tasks?.length || 0) - index).padStart(2, '0')}
                                 </Link>
                             </TableCell>
                             <TableCell className="whitespace-nowrap">
@@ -134,6 +150,11 @@ export default function TasksPage() {
                             <TableCell>
                                 <Link href={`/kothakom/tasks/${task.id}`} className="block w-full h-full">
                                     {task.title}
+                                </Link>
+                            </TableCell>
+                            <TableCell>
+                                <Link href={`/kothakom/tasks/${task.id}`} className="block w-full h-full">
+                                    {task.assignedTo || 'Unassigned'}
                                 </Link>
                             </TableCell>
                           </TableRow>

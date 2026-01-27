@@ -32,6 +32,7 @@ import { PlusCircle } from 'lucide-react';
 const formSchema = z.object({
   title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
   summary: z.string().min(10, { message: 'Summary must be at least 10 characters.' }),
+  assignedTo: z.string().email({ message: 'Please enter a valid email.' }).optional().or(z.literal('')),
 });
 
 export default function NewTaskDialog() {
@@ -44,6 +45,7 @@ export default function NewTaskDialog() {
     defaultValues: {
       title: '',
       summary: '',
+      assignedTo: '',
     },
   });
 
@@ -59,7 +61,9 @@ export default function NewTaskDialog() {
     const tasksCollection = collection(firestore, 'tasks');
 
     addDocumentNonBlocking(tasksCollection, {
-      ...values,
+      title: values.title,
+      summary: values.summary,
+      assignedTo: values.assignedTo || null,
       createdAt: new Date().toISOString(),
       status: "New",
     });
@@ -115,6 +119,19 @@ export default function NewTaskDialog() {
                         className="min-h-[100px]"
                         {...field}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="assignedTo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assign To (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="user@example.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

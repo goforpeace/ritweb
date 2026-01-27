@@ -32,12 +32,14 @@ import { Pencil } from 'lucide-react';
 const formSchema = z.object({
   title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
   summary: z.string().min(10, { message: 'Summary must be at least 10 characters.' }),
+  assignedTo: z.string().email({ message: "Please enter a valid email." }).optional().or(z.literal('')),
 });
 
 type Task = {
     id: string;
     title: string;
     summary: string;
+    assignedTo?: string;
 }
 
 interface EditTaskDialogProps {
@@ -54,6 +56,7 @@ export default function EditTaskDialog({ task }: EditTaskDialogProps) {
     defaultValues: {
       title: task.title,
       summary: task.summary,
+      assignedTo: task.assignedTo || '',
     },
   });
 
@@ -68,7 +71,11 @@ export default function EditTaskDialog({ task }: EditTaskDialogProps) {
     }
     const taskRef = doc(firestore, 'tasks', task.id);
 
-    updateDocumentNonBlocking(taskRef, values);
+    updateDocumentNonBlocking(taskRef, {
+        title: values.title,
+        summary: values.summary,
+        assignedTo: values.assignedTo || null
+    });
 
     toast({
       title: 'Task Updated!',
@@ -119,6 +126,19 @@ export default function EditTaskDialog({ task }: EditTaskDialogProps) {
                         className="min-h-[100px]"
                         {...field}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="assignedTo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assign To (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="user@example.com" {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -161,6 +161,11 @@
             "In Progress",
             "Completed"
           ]
+        },
+        "assignedTo": {
+          "type": "string",
+          "description": "The email of the user this task is assigned to.",
+          "format": "email"
         }
       },
       "required": [

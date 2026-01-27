@@ -19,6 +19,7 @@ type Task = {
   summary: string;
   createdAt: string;
   status: TaskStatus;
+  assignedTo?: string;
 };
 
 export default function TaskDetailPage({ params }: { params: { taskId: string } }) {
@@ -115,6 +116,9 @@ export default function TaskDetailPage({ params }: { params: { taskId: string } 
                 <CardContent>
                     <h3 className="font-semibold mb-2 mt-4">Summary</h3>
                     <p className="text-muted-foreground whitespace-pre-wrap">{task.summary}</p>
+                    
+                    <h3 className="font-semibold mb-2 mt-4">Assigned To</h3>
+                    <p className="text-muted-foreground">{task.assignedTo || 'Unassigned'}</p>
                 </CardContent>
             </Card>
 
