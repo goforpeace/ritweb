@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { cn } from '@/lib/utils';
 
 type Note = {
   id: string;
@@ -30,9 +31,10 @@ type Note = {
 
 interface TaskNotesProps {
   taskId: string;
+  className?: string;
 }
 
-export function TaskNotes({ taskId }: TaskNotesProps) {
+export function TaskNotes({ taskId, className }: TaskNotesProps) {
   const [newNote, setNewNote] = useState('');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
@@ -86,7 +88,7 @@ export function TaskNotes({ taskId }: TaskNotesProps) {
   };
 
   return (
-    <Card className='h-full'>
+    <Card className={cn('h-full', className)}>
         <CardHeader>
             <CardTitle>Notepad</CardTitle>
         </CardHeader>

@@ -1,7 +1,7 @@
 'use client';
 
-import { useFirebase, useUser, useMemoFirebase, useDoc } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useFirebase, useUser, useMemoFirebase, useDoc, useCollection } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Header from '@/components/sections/header';
 import Footer from '@/components/sections/footer';
@@ -13,6 +13,8 @@ import { TaskStatusBadge } from '@/components/kothakom/TaskStatusBadge';
 import { TaskNotes } from '@/components/kothakom/TaskNotes';
 import EditTaskDialog from '@/components/kothakom/EditTaskDialog';
 import { Badge } from '@/components/ui/badge';
+import { useMemo } from 'react';
+import { Separator } from '@/components/ui/separator';
 
 type Task = {
   id: string;
@@ -21,6 +23,12 @@ type Task = {
   createdAt: string;
   status: TaskStatus;
   assignedTo?: string[];
+};
+
+type UserProfile = {
+  id: string;
+  name: string;
+  email: string;
 };
 
 export default function TaskDetailPage({ params }: { params: { taskId: string } }) {
@@ -34,6 +42,18 @@ export default function TaskDetailPage({ params }: { params: { taskId: string } 
   }, [firestore, user, taskId]);
 
   const { data: task, isLoading: isLoadingTask } = useDoc<Task>(taskRef);
+
+  const usersRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'users');
+  }, [firestore]);
+
+  const { data: users } = useCollection<UserProfile>(usersRef);
+  
+  const userEmailToNameMap = useMemo(() => {
+    if (!users) return new Map();
+    return new Map(users.map(u => [u.email, u.name]));
+  }, [users]);
 
   if (isUserLoading || isLoadingTask) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -86,11 +106,13 @@ export default function TaskDetailPage({ params }: { params: { taskId: string } 
       </div>
     );
   }
+  
+  const assignedToEmails = Array.isArray(task.assignedTo) ? task.assignedTo : [];
 
   return (
     <div className="flex flex-col min-h-dvh">
       <Header />
-      <main className="flex-1 py-12 px-4 md:px-6">
+      <main className="flex-1 py-12 px-4 md:px-6 bg-muted/20">
         <div className="container mx-auto space-y-8">
             <Button asChild variant="outline">
                 <Link href="/kothakom/tasks">
@@ -99,9 +121,9 @@ export default function TaskDetailPage({ params }: { params: { taskId: string } 
                 </Link>
             </Button>
           
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-8 items-start">
             {/* Left Column - Task Details */}
-            <Card>
+            <Card className="h-full">
                 <CardHeader>
                     <div className="flex justify-between items-start">
                         <div>
@@ -114,16 +136,20 @@ export default function TaskDetailPage({ params }: { params: { taskId: string } 
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent>
-                    <h3 className="font-semibold mb-2 mt-4">Summary</h3>
-                    <p className="text-muted-foreground whitespace-pre-wrap">{task.summary}</p>
+                <CardContent className="space-y-6 pt-6">
+                    <div>
+                        <h3 className="font-semibold mb-2 text-primary">Summary</h3>
+                        <p className="text-muted-foreground whitespace-pre-wrap">{task.summary}</p>
+                    </div>
                     
-                    <div className="mt-4">
-                        <h3 className="font-semibold mb-2">Assigned To</h3>
+                    <Separator />
+
+                    <div>
+                        <h3 className="font-semibold mb-2 text-primary">Assigned To</h3>
                         <div className="flex flex-wrap gap-2">
-                           {task.assignedTo && Array.isArray(task.assignedTo) && task.assignedTo.length > 0 ? (
-                                task.assignedTo.map(email => (
-                                    <Badge key={email} variant="secondary">{email}</Badge>
+                           {assignedToEmails.length > 0 ? (
+                                assignedToEmails.map(email => (
+                                    <Badge key={email} variant="secondary">{userEmailToNameMap.get(email) || email}</Badge>
                                 ))
                             ) : (
                                 <p className="text-muted-foreground">Unassigned</p>
@@ -134,7 +160,7 @@ export default function TaskDetailPage({ params }: { params: { taskId: string } 
             </Card>
 
             {/* Right Column - Notepad */}
-            <TaskNotes taskId={taskId} />
+            <TaskNotes taskId={taskId} className="bg-card/50" />
           </div>
         </div>
       </main>
