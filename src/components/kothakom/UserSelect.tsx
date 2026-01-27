@@ -9,12 +9,14 @@ import {
     DropdownMenuTrigger,
     DropdownMenuLabel,
     DropdownMenuSeparator,
+    DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { X, Users } from 'lucide-react';
 import { ControllerRenderProps } from 'react-hook-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useState } from 'react';
 
 type UserProfile = {
     id: string;
@@ -28,6 +30,7 @@ interface UserSelectProps {
 
 export default function UserSelect({ field }: UserSelectProps) {
     const { firestore } = useFirebase();
+    const [isOpen, setIsOpen] = useState(false);
 
     const usersRef = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -47,7 +50,7 @@ export default function UserSelect({ field }: UserSelectProps) {
 
     return (
         <div className="space-y-2">
-            <DropdownMenu>
+            <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
                 <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="w-full justify-start font-normal">
                         <Users className="mr-2 h-4 w-4" />
@@ -69,6 +72,16 @@ export default function UserSelect({ field }: UserSelectProps) {
                             </DropdownMenuCheckboxItem>
                         ))}
                     </ScrollArea>
+                    <DropdownMenuSeparator />
+                     <div className="p-1">
+                        <Button
+                            size="sm"
+                            className="w-full"
+                            onClick={() => setIsOpen(false)}
+                        >
+                            Done
+                        </Button>
+                    </div>
                 </DropdownMenuContent>
             </DropdownMenu>
 
