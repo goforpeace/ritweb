@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -34,6 +34,12 @@ type Note = {
   createdAt: string;
 };
 
+type UserProfile = {
+  id: string;
+  name: string;
+  email: string;
+};
+
 interface NotesDialogProps {
   collectionPath: 'call_requests' | 'contact_form_submissions';
   documentId: string;
@@ -58,6 +64,18 @@ export function NotesDialog({ collectionPath, documentId }: NotesDialogProps) {
   }, [notesCollectionRef]);
 
   const { data: notes, isLoading } = useCollection<Note>(notesQuery);
+
+  const usersRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'users');
+  }, [firestore]);
+
+  const { data: users } = useCollection<UserProfile>(usersRef);
+  
+  const userEmailToNameMap = useMemo(() => {
+    if (!users) return new Map();
+    return new Map(users.map(u => [u.email, u.name]));
+  }, [users]);
 
   const handleAddNote = () => {
     if (!newNote.trim() || !user?.email || !notesCollectionRef) return;
@@ -144,7 +162,7 @@ export function NotesDialog({ collectionPath, documentId }: NotesDialogProps) {
                                     <p className="whitespace-pre-wrap">{note.content}</p>
                                     <div className='flex justify-between items-center'>
                                         <p className="text-xs text-muted-foreground mt-2">
-                                            {note.createdBy} - {format(new Date(note.createdAt), 'PPP p')}
+                                            {userEmailToNameMap.get(note.createdBy) || note.createdBy} - {format(new Date(note.createdAt), 'PPP p')}
                                         </p>
                                         <div className='opacity-0 group-hover:opacity-100 transition-opacity flex gap-1'>
                                             <Button variant='ghost' size='icon' className='h-7 w-7' onClick={() => handleEditNote(note)}>
