@@ -121,7 +121,7 @@ export default function TaskDetailPage({ params }: { params: { taskId: string } 
                     <div className="mt-4">
                         <h3 className="font-semibold mb-2">Assigned To</h3>
                         <div className="flex flex-wrap gap-2">
-                           {task.assignedTo && task.assignedTo.length > 0 ? (
+                           {task.assignedTo && Array.isArray(task.assignedTo) && task.assignedTo.length > 0 ? (
                                 task.assignedTo.map(email => (
                                     <Badge key={email} variant="secondary">{email}</Badge>
                                 ))

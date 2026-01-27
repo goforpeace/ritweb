@@ -40,7 +40,7 @@ type Task = {
     id: string;
     title: string;
     summary: string;
-    assignedTo?: string[];
+    assignedTo?: string[] | string; // Allow string for backward compatibility
 }
 
 interface EditTaskDialogProps {
@@ -57,7 +57,7 @@ export default function EditTaskDialog({ task }: EditTaskDialogProps) {
     defaultValues: {
       title: task.title,
       summary: task.summary,
-      assignedTo: task.assignedTo || [],
+      assignedTo: Array.isArray(task.assignedTo) ? task.assignedTo : [],
     },
   });
 
