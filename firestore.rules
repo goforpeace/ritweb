@@ -53,5 +53,13 @@ service cloud.firestore {
         allow update, delete: if request.auth != null;
       }
     }
+
+    match /users/{userId} {
+      // Allow authenticated users to read the list of users for assignment
+      allow get, list: if request.auth != null;
+
+      // Disallow client-side writes to maintain data integrity
+      allow create, update, delete: if false;
+    }
   }
 }

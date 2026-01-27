@@ -117,7 +117,10 @@ export default function TaskDetailPage({ params }: { params: { taskId: string } 
                     <h3 className="font-semibold mb-2 mt-4">Summary</h3>
                     <p className="text-muted-foreground whitespace-pre-wrap">{task.summary}</p>
                     
-                    <h3 className="font-semibold mb-2 mt-4">Assigned To</h3>
+                    <div className="flex items-center justify-between mt-4">
+                        <h3 className="font-semibold">Assigned To</h3>
+                        <EditTaskDialog task={task} />
+                    </div>
                     <p className="text-muted-foreground">{task.assignedTo || 'Unassigned'}</p>
                 </CardContent>
             </Card>

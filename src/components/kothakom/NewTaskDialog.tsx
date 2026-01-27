@@ -28,6 +28,7 @@ import { addDocumentNonBlocking, useFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { useState } from 'react';
 import { PlusCircle } from 'lucide-react';
+import UserSelect from './UserSelect';
 
 const formSchema = z.object({
   title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
@@ -129,9 +130,9 @@ export default function NewTaskDialog() {
                 name="assignedTo"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Assign To (Optional)</FormLabel>
+                    <FormLabel>Assign To</FormLabel>
                     <FormControl>
-                      <Input placeholder="user@example.com" {...field} />
+                      <UserSelect field={field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
