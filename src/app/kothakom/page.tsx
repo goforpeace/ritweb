@@ -6,7 +6,7 @@ import Header from '@/components/sections/header';
 import Footer from '@/components/sections/footer';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Phone, Mail, ListChecks } from 'lucide-react';
+import { Phone, Mail, ListChecks, ClipboardList } from 'lucide-react';
 
 export default function KothakomDashboard() {
   const { user, isUserLoading } = useUser();
@@ -49,7 +49,7 @@ export default function KothakomDashboard() {
                     View and manage your website leads and tasks.
                 </p>
             </div>
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-2">
                 <Link href="/kothakom/call-requests">
                     <Card className="bg-card hover:bg-card/80 transition-colors border-border/60 hover:-translate-y-2 duration-300 h-full">
                         <CardHeader className="flex flex-row items-center gap-4">
@@ -78,17 +78,39 @@ export default function KothakomDashboard() {
                         </CardContent>
                     </Card>
                 </Link>
+            </div>
+            <div className="text-center my-12 pt-8">
+                <h2 className="text-4xl font-bold tracking-tighter sm:text-5xl">Task Boards</h2>
+                <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-xl">
+                    Manage your internal and external project tasks.
+                </p>
+            </div>
+             <div className="grid gap-8 md:grid-cols-2">
                  <Link href="/kothakom/tasks">
                      <Card className="bg-card hover:bg-card/80 transition-colors border-border/60 hover:-translate-y-2 duration-300 h-full">
                         <CardHeader className="flex flex-row items-center gap-4">
                             <ListChecks className="h-10 w-10 text-primary" />
                             <div>
                                 <CardTitle className="text-2xl">Tasks</CardTitle>
-                                <CardDescription className="mt-1">Manage your internal tasks.</CardDescription>
+                                <CardDescription className="mt-1">Manage your project tasks.</CardDescription>
                             </div>
                         </CardHeader>
                         <CardContent>
                             <p>Create, track, and complete your project tasks.</p>
+                        </CardContent>
+                    </Card>
+                </Link>
+                 <Link href="/kothakom/internal">
+                     <Card className="bg-card hover:bg-card/80 transition-colors border-border/60 hover:-translate-y-2 duration-300 h-full">
+                        <CardHeader className="flex flex-row items-center gap-4">
+                            <ClipboardList className="h-10 w-10 text-primary" />
+                            <div>
+                                <CardTitle className="text-2xl">Internal</CardTitle>
+                                <CardDescription className="mt-1">Manage your internal team tasks.</CardDescription>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <p>Create, track, and complete your internal project tasks.</p>
                         </CardContent>
                     </Card>
                 </Link>
