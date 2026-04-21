@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -8,7 +9,9 @@ import {
   ListChecks,
   ClipboardList,
   LogOut,
-  ChevronRight,
+  Briefcase,
+  Users,
+  Banknote,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -40,7 +43,27 @@ const data = {
       ],
     },
     {
-      title: 'Leads',
+      title: 'Business Operations',
+      items: [
+        {
+          title: 'Clients',
+          url: '/kothakom/clients',
+          icon: Users,
+        },
+        {
+          title: 'Projects',
+          url: '/kothakom/projects',
+          icon: Briefcase,
+        },
+        {
+          title: 'Teka Poisha',
+          url: '/kothakom/finance',
+          icon: Banknote,
+        },
+      ],
+    },
+    {
+      title: 'Communications',
       items: [
         {
           title: 'Call Requests',
@@ -55,7 +78,7 @@ const data = {
       ],
     },
     {
-      title: 'Task Boards',
+      title: 'Task Management',
       items: [
         {
           title: 'Project Tasks',

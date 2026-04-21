@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "ContactFormSubmission": {
@@ -6,50 +7,18 @@
       "type": "object",
       "description": "Represents a contact form submission from the website.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the contact form submission."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the person submitting the form."
-        },
-        "email": {
-          "type": "string",
-          "description": "The email address of the person submitting the form.",
-          "format": "email"
-        },
-        "company": {
-          "type": "string",
-          "description": "The company name provided in the form."
-        },
-        "message": {
-          "type": "string",
-          "description": "The message content from the contact form."
-        },
-        "submissionDate": {
-          "type": "string",
-          "description": "The date and time the form was submitted.",
-          "format": "date-time"
-        },
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "company": { "type": "string" },
+        "message": { "type": "string" },
+        "submissionDate": { "type": "string", "format": "date-time" },
         "status": {
           "type": "string",
-          "description": "The current status of the submission.",
-          "enum": [
-            "New",
-            "Contacted",
-            "Follow up",
-            "Closed"
-          ]
+          "enum": ["New", "Contacted", "Follow up", "Closed"]
         }
       },
-      "required": [
-        "id",
-        "name",
-        "email",
-        "message",
-        "submissionDate"
-      ]
+      "required": ["id", "name", "email", "message", "submissionDate"]
     },
     "CallRequest": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -57,46 +26,17 @@
       "type": "object",
       "description": "Represents a request for a call back from a potential client.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the call request."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the person requesting the call."
-        },
-        "email": {
-          "type": "string",
-          "description": "The email address of the person requesting the call.",
-          "format": "email"
-        },
-        "phone": {
-          "type": "string",
-          "description": "The phone number of the person requesting the call."
-        },
-        "submissionDate": {
-          "type": "string",
-          "description": "The date and time the request was submitted.",
-          "format": "date-time"
-        },
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "submissionDate": { "type": "string", "format": "date-time" },
         "status": {
           "type": "string",
-          "description": "The current status of the call request.",
-          "enum": [
-            "New",
-            "Contacted",
-            "Follow up",
-            "Closed"
-          ]
+          "enum": ["New", "Contacted", "Follow up", "Closed"]
         }
       },
-      "required": [
-        "id",
-        "name",
-        "email",
-        "phone",
-        "submissionDate"
-      ]
+      "required": ["id", "name", "email", "phone", "submissionDate"]
     },
     "Note": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -104,31 +44,12 @@
       "type": "object",
       "description": "Represents a note added to a submission or request.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the note."
-        },
-        "content": {
-          "type": "string",
-          "description": "The content of the note."
-        },
-        "createdBy": {
-          "type": "string",
-          "description": "The email of the user who created the note.",
-          "format": "email"
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "The date and time the note was created.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "content": { "type": "string" },
+        "createdBy": { "type": "string", "format": "email" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "content",
-        "createdBy",
-        "createdAt"
-      ]
+      "required": ["id", "content", "createdBy", "createdAt"]
     },
     "Task": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -136,244 +57,93 @@
       "type": "object",
       "description": "Represents a task in the admin dashboard.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the task."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the task."
-        },
-        "summary": {
-          "type": "string",
-          "description": "A short summary of the task."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "The date and time the task was created.",
-          "format": "date-time"
-        },
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "summary": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
         "status": {
           "type": "string",
-          "description": "The current status of the task.",
-          "enum": [
-            "New",
-            "In Progress",
-            "Completed"
-          ]
+          "enum": ["New", "In Progress", "Completed"]
         },
         "assignedTo": {
           "type": "array",
-          "description": "A list of emails of the users this task is assigned to.",
-          "items": {
-            "type": "string",
-            "format": "email"
-          }
+          "items": { "type": "string", "format": "email" }
         }
       },
-      "required": [
-        "id",
-        "title",
-        "summary",
-        "createdAt"
-      ]
+      "required": ["id", "title", "summary", "createdAt"]
     },
     "UserProfile": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
-      "description": "Represents a user profile in the system, primarily for assignment.",
+      "description": "Represents a user profile in the system.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "The user's unique auth ID."
-        },
-        "name": {
-          "type": "string",
-          "description": "The user's full name."
-        },
-        "email": {
-          "type": "string",
-          "description": "The user's email address.",
-          "format": "email"
-        }
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" }
       },
-      "required": [
-        "id",
-        "name",
-        "email"
-      ]
+      "required": ["id", "name", "email"]
+    },
+    "Project": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Project",
+      "type": "object",
+      "description": "Represents a customer project.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["Planning", "Active", "On Hold", "Completed"] },
+        "clientId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "status", "createdAt"]
+    },
+    "Client": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Client",
+      "type": "object",
+      "description": "Represents a business client.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "company": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "email", "createdAt"]
+    },
+    "FinanceRecord": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FinanceRecord",
+      "type": "object",
+      "description": "Represents a financial transaction or invoice (Teka Poisha).",
+      "properties": {
+        "id": { "type": "string" },
+        "description": { "type": "string" },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "enum": ["Income", "Expense"] },
+        "status": { "type": "string", "enum": ["Pending", "Completed", "Cancelled"] },
+        "date": { "type": "string", "format": "date" },
+        "projectId": { "type": "string" }
+      },
+      "required": ["id", "description", "amount", "type", "status", "date"]
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": ["password", "anonymous"]
   },
   "firestore": {
     "structure": [
-      {
-        "path": "/contact_form_submissions/{submissionId}",
-        "definition": {
-          "entityName": "ContactFormSubmission",
-          "schema": {
-            "$ref": "#/backend/entities/ContactFormSubmission"
-          },
-          "description": "Stores contact form submissions.",
-          "params": [
-            {
-              "name": "submissionId",
-              "description": "Unique identifier for the contact form submission."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/contact_form_submissions/{submissionId}/notes/{noteId}",
-        "definition": {
-          "entityName": "Note",
-          "schema": {
-            "$ref": "#/backend/entities/Note"
-          },
-          "description": "Stores notes for a specific contact form submission.",
-          "params": [
-            {
-              "name": "submissionId",
-              "description": "The ID of the parent contact form submission."
-            },
-            {
-              "name": "noteId",
-              "description": "Unique identifier for the note."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/call_requests/{requestId}",
-        "definition": {
-          "entityName": "CallRequest",
-          "schema": {
-            "$ref": "#/backend/entities/CallRequest"
-          },
-          "description": "Stores call back requests from potential clients.",
-          "params": [
-            {
-              "name": "requestId",
-              "description": "Unique identifier for the call request."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/call_requests/{requestId}/notes/{noteId}",
-        "definition": {
-          "entityName": "Note",
-          "schema": {
-            "$ref": "#/backend/entities/Note"
-          },
-          "description": "Stores notes for a specific call request.",
-          "params": [
-            {
-              "name": "requestId",
-              "description": "The ID of the parent call request."
-            },
-            {
-              "name": "noteId",
-              "description": "Unique identifier for the note."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/tasks/{taskId}",
-        "definition": {
-          "entityName": "Task",
-          "schema": {
-            "$ref": "#/backend/entities/Task"
-          },
-          "description": "Stores tasks for the admin dashboard.",
-          "params": [
-            {
-              "name": "taskId",
-              "description": "Unique identifier for the task."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/tasks/{taskId}/notes/{noteId}",
-        "definition": {
-          "entityName": "Note",
-          "schema": {
-            "$ref": "#/backend/entities/Note"
-          },
-          "description": "Stores notes for a specific task.",
-          "params": [
-            {
-              "name": "taskId",
-              "description": "The ID of the parent task."
-            },
-            {
-              "name": "noteId",
-              "description": "Unique identifier for the note."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/internal_tasks/{taskId}",
-        "definition": {
-          "entityName": "Task",
-          "schema": {
-            "$ref": "#/backend/entities/Task"
-          },
-          "description": "Stores internal tasks for the admin dashboard.",
-          "params": [
-            {
-              "name": "taskId",
-              "description": "Unique identifier for the task."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/internal_tasks/{taskId}/notes/{noteId}",
-        "definition": {
-          "entityName": "Note",
-          "schema": {
-            "$ref": "#/backend/entities/Note"
-          },
-          "description": "Stores notes for a specific internal task.",
-          "params": [
-            {
-              "name": "taskId",
-              "description": "The ID of the parent internal task."
-            },
-            {
-              "name": "noteId",
-              "description": "Unique identifier for the note."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "UserProfile",
-          "schema": {
-            "$ref": "#/backend/entities/UserProfile"
-          },
-          "description": "Stores user profile information for task assignment.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The user's unique ID."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "This design prioritizes security and scalability for handling contact form submissions. All submissions are stored in a single collection, `/contact_form_submissions`, making listing submissions straightforward. No authorization dependencies exist as the dashboard will likely require admin access, which will be implemented out-of-scope using a separate authentication and role management system, as per the DBAC principle (Database Authentication and Authorization). This allows for future expansion without impacting the core security model of contact form submissions. The structure is simple and avoids any complex authorization rules, enabling efficient queries and updates. Subcollections for notes are added to keep related data together."
+      { "path": "/contact_form_submissions/{submissionId}", "definition": { "entityName": "ContactFormSubmission" } },
+      { "path": "/call_requests/{requestId}", "definition": { "entityName": "CallRequest" } },
+      { "path": "/tasks/{taskId}", "definition": { "entityName": "Task" } },
+      { "path": "/internal_tasks/{taskId}", "definition": { "entityName": "Task" } },
+      { "path": "/users/{userId}", "definition": { "entityName": "UserProfile" } },
+      { "path": "/projects/{projectId}", "definition": { "entityName": "Project" } },
+      { "path": "/clients/{clientId}", "definition": { "entityName": "Client" } },
+      { "path": "/finance/{recordId}", "definition": { "entityName": "FinanceRecord" } }
+    ]
   }
 }
