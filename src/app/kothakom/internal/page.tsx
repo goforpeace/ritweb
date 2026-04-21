@@ -5,13 +5,9 @@ import { collection, query, orderBy } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
-import Header from '@/components/sections/header';
-import Footer from '@/components/sections/footer';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Search } from 'lucide-react';
-import type { TaskStatus } from '@/components/kothakom/InternalTaskStatusBadge';
-import { InternalTaskStatusBadge } from '@/components/kothakom/InternalTaskStatusBadge';
+import { Search, Filter } from 'lucide-react';
+import { InternalTaskStatusBadge, type TaskStatus } from '@/components/kothakom/InternalTaskStatusBadge';
 import NewInternalTaskDialog from '@/components/kothakom/NewInternalTaskDialog';
 import { Input } from '@/components/ui/input';
 import { useMemo, useState } from 'react';
@@ -37,7 +33,7 @@ type UserProfile = {
 
 export default function InternalTasksPage() {
   const { firestore } = useFirebase();
-  const { user, isUserLoading } = useUser();
+  const { user } = useUser();
   const [searchTerm, setSearchTerm] = useState('');
   const [showMyTasks, setShowMyTasks] = useState(false);
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'All'>('All');
@@ -76,120 +72,88 @@ export default function InternalTasksPage() {
     });
   }, [tasks, searchTerm, showMyTasks, user, statusFilter]);
 
-
-  if (isUserLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-
-  if (!user) {
-    return (
-      <div className="flex flex-col min-h-dvh">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <Card className="w-full max-w-md mx-4">
-            <CardHeader>
-              <CardTitle>Access Denied</CardTitle>
-              <CardDescription>You must be logged in to view this page.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4 items-center">
-              <p>Please log in to access the dashboard.</p>
-              <Button asChild>
-                <Link href="/cmi">Go to Login</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col min-h-dvh">
-      <Header />
-      <main className="flex-1 py-12 px-4 md:px-6">
-        <div className="container mx-auto space-y-8">
-            <div className='flex justify-between items-center'>
-                <Button asChild variant="outline">
-                    <Link href="/kothakom">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back to Dashboard
-                    </Link>
-                </Button>
-                <NewInternalTaskDialog />
+    <div className="space-y-6 animate-in fade-in duration-500">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">Internal Tasks</h1>
+                <p className="text-muted-foreground mt-1">Manage team-only operations and internal processes.</p>
+            </div>
+            <NewInternalTaskDialog />
+        </div>
+
+        <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-4">
+                <div className="relative flex-1 min-w-[300px]">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Search internal board..." 
+                        className="pl-9 h-10"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="flex items-center gap-2 bg-muted/30 px-3 h-10 rounded-md border border-border/50">
+                    <Switch id="my-internal-tasks" checked={showMyTasks} onCheckedChange={setShowMyTasks} />
+                    <Label htmlFor="my-internal-tasks" className="text-xs font-medium cursor-pointer">My Tasks</Label>
+                </div>
             </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Internal Tasks</CardTitle>
-              <CardDescription>Manage your internal team tasks.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="flex justify-between items-center gap-4 flex-wrap">
-                    <div className="relative flex-1 min-w-[250px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input 
-                            placeholder="Search tasks by title..." 
-                            className="pl-10"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <Switch id="my-tasks-filter" checked={showMyTasks} onCheckedChange={setShowMyTasks} />
-                        <Label htmlFor="my-tasks-filter">Show My Tasks</Label>
-                    </div>
+            <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)} className="w-full">
+                <TabsList className="grid w-full grid-cols-4 max-w-[500px]">
+                    <TabsTrigger value="All">All</TabsTrigger>
+                    <TabsTrigger value="New">New</TabsTrigger>
+                    <TabsTrigger value="In Progress">In Progress</TabsTrigger>
+                    <TabsTrigger value="Completed">Completed</TabsTrigger>
+                </TabsList>
+            </Tabs>
+        </div>
+
+        <Card className="border-border/50">
+            <CardContent className="pt-6">
+              {isLoadingTasks && <div className="py-10 text-center text-muted-foreground animate-pulse">Syncing board...</div>}
+              {!isLoadingTasks && (!filteredTasks || filteredTasks.length === 0) && (
+                 <div className="py-20 text-center border-2 border-dashed rounded-lg">
+                    <Filter className="mx-auto h-8 w-8 text-muted-foreground opacity-50 mb-4" />
+                    <p className="text-muted-foreground">No internal tasks found.</p>
                 </div>
-                 <Tabs value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)} className="w-full">
-                    <TabsList>
-                        <TabsTrigger value="All">All</TabsTrigger>
-                        <TabsTrigger value="New">New</TabsTrigger>
-                        <TabsTrigger value="In Progress">In Progress</TabsTrigger>
-                        <TabsTrigger value="Completed">Completed</TabsTrigger>
-                    </TabsList>
-                </Tabs>
-              {isLoadingTasks && <p>Loading tasks...</p>}
-              {!isLoadingTasks && (!filteredTasks || filteredTasks.length === 0) && <p>No tasks found.</p>}
+              )}
               {!isLoadingTasks && filteredTasks && filteredTasks.length > 0 && (
-                <div className="border rounded-md">
+                <div className="rounded-md border overflow-hidden">
                   <Table>
-                    <TableHeader>
+                    <TableHeader className="bg-muted/50">
                       <TableRow>
-                        <TableHead>ID</TableHead>
-                        <TableHead>Created</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead className="w-[80px]">Ref</TableHead>
                         <TableHead>Title</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead>Assigned To</TableHead>
+                        <TableHead className="text-right">Created</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredTasks.map((task, index) => (
-                          <TableRow key={task.id} className="cursor-pointer hover:bg-muted/50">
-                            <TableCell className="font-mono">
-                                <Link href={`/kothakom/internal/${task.id}`} className="block w-full h-full">
-                                    {String((tasks?.length || 0) - (tasks?.findIndex(t => t.id === task.id) || 0)).padStart(2, '0')}
+                      {filteredTasks.map((task) => (
+                          <TableRow key={task.id} className="hover:bg-muted/30 group">
+                            <TableCell className="font-mono text-xs text-muted-foreground">
+                                <Link href={`/kothakom/internal/${task.id}`} className="block">
+                                    #INT-{String((tasks?.length || 0) - (tasks?.findIndex(t => t.id === task.id) || 0)).padStart(2, '0')}
                                 </Link>
                             </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                                 <Link href={`/kothakom/internal/${task.id}`} className="block w-full h-full">
-                                    {format(new Date(task.createdAt), "PPP")}
-                                 </Link>
-                            </TableCell>
-                            <TableCell>
-                                <InternalTaskStatusBadge currentStatus={task.status || 'New'} documentId={task.id} />
-                            </TableCell>
-                            <TableCell>
-                                <Link href={`/kothakom/internal/${task.id}`} className="block w-full h-full">
+                            <TableCell className="font-medium">
+                                <Link href={`/kothakom/internal/${task.id}`} className="block hover:underline decoration-primary/50 underline-offset-4">
                                     {task.title}
                                 </Link>
                             </TableCell>
                             <TableCell>
-                                <Link href={`/kothakom/internal/${task.id}`} className="block w-full h-full">
-                                    {(Array.isArray(task.assignedTo) && task.assignedTo.length > 0) 
-                                        ? task.assignedTo.map(email => userEmailToNameMap.get(email) || email).join(', ')
-                                        : 'Unassigned'
-                                    }
-                                </Link>
+                                <InternalTaskStatusBadge currentStatus={task.status || 'New'} documentId={task.id} />
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground">
+                                {(Array.isArray(task.assignedTo) && task.assignedTo.length > 0) 
+                                    ? task.assignedTo.map(email => userEmailToNameMap.get(email) || email).join(', ')
+                                    : <span className="italic">Unassigned</span>
+                                }
+                            </TableCell>
+                            <TableCell className="text-right text-xs text-muted-foreground">
+                                {format(new Date(task.createdAt), "MMM d, yyyy")}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -199,9 +163,6 @@ export default function InternalTasksPage() {
               )}
             </CardContent>
           </Card>
-        </div>
-      </main>
-      <Footer />
     </div>
   );
 }

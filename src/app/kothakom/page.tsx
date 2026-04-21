@@ -2,122 +2,96 @@
 
 import { useUser } from '@/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import Header from '@/components/sections/header';
-import Footer from '@/components/sections/footer';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Phone, Mail, ListChecks, ClipboardList } from 'lucide-react';
+import { Phone, Mail, ListChecks, ClipboardList, ArrowRight } from 'lucide-react';
 
 export default function KothakomDashboard() {
-  const { user, isUserLoading } = useUser();
-
-  if (isUserLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-
-  if (!user) {
-    return (
-      <div className="flex flex-col min-h-dvh">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <Card className="w-full max-w-md mx-4">
-            <CardHeader>
-              <CardTitle>Access Denied</CardTitle>
-              <CardDescription>You must be logged in to view this page.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4 items-center">
-              <p>Please log in to access the dashboard.</p>
-              <Button asChild>
-                <Link href="/cmi">Go to Login</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  const { user } = useUser();
 
   return (
-    <div className="flex flex-col min-h-dvh">
-      <Header />
-      <main className="flex-1 py-12 px-4 md:px-6">
-        <div className="container mx-auto">
-            <div className="text-center mb-12">
-                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">Admin Dashboard</h1>
-                <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-xl">
-                    View and manage your website leads and tasks.
-                </p>
-            </div>
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-2">
-                <Link href="/kothakom/call-requests">
-                    <Card className="bg-card hover:bg-card/80 transition-colors border-border/60 hover:-translate-y-2 duration-300 h-full">
-                        <CardHeader className="flex flex-row items-center gap-4">
-                            <Phone className="h-10 w-10 text-primary" />
-                            <div>
-                                <CardTitle className="text-2xl">Call Requests</CardTitle>
-                                <CardDescription className="mt-1">Leads from the "Request a Call" button.</CardDescription>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p>View all potential clients who have requested a callback.</p>
-                        </CardContent>
-                    </Card>
-                </Link>
-                <Link href="/kothakom/contact-submissions">
-                     <Card className="bg-card hover:bg-card/80 transition-colors border-border/60 hover:-translate-y-2 duration-300 h-full">
-                        <CardHeader className="flex flex-row items-center gap-4">
-                            <Mail className="h-10 w-10 text-primary" />
-                            <div>
-                                <CardTitle className="text-2xl">Contact Submissions</CardTitle>
-                                <CardDescription className="mt-1">Messages from your contact form.</CardDescription>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p>Read and manage all messages submitted through the contact form.</p>
-                        </CardContent>
-                    </Card>
-                </Link>
-            </div>
-            <div className="text-center my-12 pt-8">
-                <h2 className="text-4xl font-bold tracking-tighter sm:text-5xl">Task Boards</h2>
-                <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-xl">
-                    Manage your internal and external project tasks.
-                </p>
-            </div>
-             <div className="grid gap-8 md:grid-cols-2">
-                 <Link href="/kothakom/tasks">
-                     <Card className="bg-card hover:bg-card/80 transition-colors border-border/60 hover:-translate-y-2 duration-300 h-full">
-                        <CardHeader className="flex flex-row items-center gap-4">
-                            <ListChecks className="h-10 w-10 text-primary" />
-                            <div>
-                                <CardTitle className="text-2xl">Tasks</CardTitle>
-                                <CardDescription className="mt-1">Manage your project tasks.</CardDescription>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p>Create, track, and complete your project tasks.</p>
-                        </CardContent>
-                    </Card>
-                </Link>
-                 <Link href="/kothakom/internal">
-                     <Card className="bg-card hover:bg-card/80 transition-colors border-border/60 hover:-translate-y-2 duration-300 h-full">
-                        <CardHeader className="flex flex-row items-center gap-4">
-                            <ClipboardList className="h-10 w-10 text-primary" />
-                            <div>
-                                <CardTitle className="text-2xl">Internal</CardTitle>
-                                <CardDescription className="mt-1">Manage your internal team tasks.</CardDescription>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p>Create, track, and complete your internal project tasks.</p>
-                        </CardContent>
-                    </Card>
-                </Link>
-            </div>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div>
+            <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.displayName?.split(' ')[0] || 'Admin'}</h1>
+            <p className="text-muted-foreground mt-1">Here's an overview of your management boards and leads.</p>
         </div>
-      </main>
-      <Footer />
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <DashboardCard 
+                href="/kothakom/call-requests"
+                icon={Phone}
+                title="Call Requests"
+                description="Potential client callbacks"
+                color="text-blue-500"
+            />
+            <DashboardCard 
+                href="/kothakom/contact-submissions"
+                icon={Mail}
+                title="Submissions"
+                description="Website contact messages"
+                color="text-emerald-500"
+            />
+            <DashboardCard 
+                href="/kothakom/tasks"
+                icon={ListChecks}
+                title="Project Tasks"
+                description="Standard project management"
+                color="text-purple-500"
+            />
+            <DashboardCard 
+                href="/kothakom/internal"
+                icon={ClipboardList}
+                title="Internal Tasks"
+                description="Internal team operations"
+                color="text-orange-500"
+            />
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+            <Card className="bg-card/50">
+                <CardHeader>
+                    <CardTitle>Recent Activity</CardTitle>
+                    <CardDescription>Stay updated with the latest updates across all boards.</CardDescription>
+                </CardHeader>
+                <CardContent className="h-[200px] flex items-center justify-center border-t">
+                    <p className="text-muted-foreground italic text-sm">Real-time activity feed coming soon...</p>
+                </CardContent>
+            </Card>
+            <Card className="bg-card/50">
+                <CardHeader>
+                    <CardTitle>Quick Links</CardTitle>
+                    <CardDescription>Fast access to frequent administration tools.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-2 border-t pt-4">
+                    <Link href="/kothakom/tasks" className="flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors text-sm">
+                        <span>New Project Task</span>
+                        <ArrowRight className="h-4 w-4" />
+                    </Link>
+                    <Link href="/kothakom/internal" className="flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors text-sm">
+                        <span>New Internal Task</span>
+                        <ArrowRight className="h-4 w-4" />
+                    </Link>
+                </CardContent>
+            </Card>
+        </div>
     </div>
   );
+}
+
+function DashboardCard({ href, icon: Icon, title, description, color }: any) {
+    return (
+        <Link href={href}>
+            <Card className="hover:bg-muted/50 transition-all duration-300 border-border/50 group h-full">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{title}</CardTitle>
+                    <Icon className={`h-4 w-4 ${color}`} />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-xs text-muted-foreground">{description}</div>
+                    <div className="mt-4 flex items-center text-xs font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                        View Board <ArrowRight className="ml-1 h-3 w-3" />
+                    </div>
+                </CardContent>
+            </Card>
+        </Link>
+    )
 }

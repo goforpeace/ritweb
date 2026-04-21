@@ -1,17 +1,11 @@
 'use client';
 
 import { useFirebase, useUser, useMemoFirebase, useCollection } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
-import Header from '@/components/sections/header';
-import Footer from '@/components/sections/footer';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import type { Status } from '@/components/kothakom/StatusBadge';
-import { StatusBadge } from '@/components/kothakom/StatusBadge';
+import { StatusBadge, type Status } from '@/components/kothakom/StatusBadge';
 import { NotesDialog } from '@/components/kothakom/NotesDialog';
 
 type CallRequest = {
@@ -25,7 +19,7 @@ type CallRequest = {
 
 export default function CallRequestsPage() {
   const { firestore } = useFirebase();
-  const { user, isUserLoading } = useUser();
+  const { user } = useUser();
   
   const callRequestsRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -34,93 +28,63 @@ export default function CallRequestsPage() {
 
   const { data: callRequests, isLoading: isLoadingRequests } = useCollection<CallRequest>(callRequestsRef);
 
-  if (isUserLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-
-  if (!user) {
-    return (
-      <div className="flex flex-col min-h-dvh">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <Card className="w-full max-w-md mx-4">
-            <CardHeader>
-              <CardTitle>Access Denied</CardTitle>
-              <CardDescription>You must be logged in to view this page.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4 items-center">
-              <p>Please log in to access the dashboard.</p>
-              <Button asChild>
-                <Link href="/cmi">Go to Login</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col min-h-dvh">
-      <Header />
-      <main className="flex-1 py-12 px-4 md:px-6">
-        <div className="container mx-auto space-y-8">
-            <Button asChild variant="outline">
-                <Link href="/kothakom">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Dashboard
-                </Link>
-            </Button>
-          <Card>
+    <div className="space-y-6 animate-in fade-in duration-500">
+        <div>
+            <h1 className="text-3xl font-bold tracking-tight">Call Requests</h1>
+            <p className="text-muted-foreground mt-1">Manage leads who requested a callback.</p>
+        </div>
+
+        <Card className="border-border/50">
             <CardHeader>
-              <CardTitle>Call Requests</CardTitle>
-              <CardDescription>Leads from the "Request a Call" button.</CardDescription>
+                <CardTitle>Requests Log</CardTitle>
+                <CardDescription>Sorted by most recent submissions.</CardDescription>
             </CardHeader>
             <CardContent>
-              {isLoadingRequests && <p>Loading call requests...</p>}
-              {!isLoadingRequests && (!callRequests || callRequests.length === 0) && <p>No call requests yet.</p>}
-              {!isLoadingRequests && callRequests && callRequests.length > 0 && (
-                <div className="border rounded-md">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
+                {isLoadingRequests && <div className="py-10 text-center text-muted-foreground animate-pulse">Loading data...</div>}
+                {!isLoadingRequests && (!callRequests || callRequests.length === 0) && (
+                    <div className="py-20 text-center border-2 border-dashed rounded-lg">
+                        <p className="text-muted-foreground">No call requests recorded yet.</p>
+                    </div>
+                )}
+                {!isLoadingRequests && callRequests && callRequests.length > 0 && (
+                <div className="rounded-md border overflow-hidden">
+                    <Table>
+                    <TableHeader className="bg-muted/50">
+                        <TableRow>
+                        <TableHead>Date Received</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Name</TableHead>
+                        <TableHead>Client Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Phone</TableHead>
-                        <TableHead>Notes</TableHead>
-                      </TableRow>
+                        <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {callRequests
+                        {callRequests
                         .sort((a, b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime())
                         .map((request) => (
-                          <TableRow key={request.id}>
-                            <TableCell className="whitespace-nowrap">
-                                {format(new Date(request.submissionDate), "PPP p")}
+                            <TableRow key={request.id} className="hover:bg-muted/30">
+                            <TableCell className="whitespace-nowrap font-medium">
+                                {format(new Date(request.submissionDate), "PP p")}
                             </TableCell>
                             <TableCell>
                                 <StatusBadge currentStatus={request.status || 'New'} collectionPath="call_requests" documentId={request.id} />
                             </TableCell>
                             <TableCell>{request.name}</TableCell>
-                            <TableCell>{request.email}</TableCell>
+                            <TableCell className="text-muted-foreground text-xs">{request.email}</TableCell>
                             <TableCell>{request.phone}</TableCell>
-                            <TableCell>
+                            <TableCell className="text-right">
                                 <NotesDialog collectionPath='call_requests' documentId={request.id} />
                             </TableCell>
-                          </TableRow>
+                            </TableRow>
                         ))}
                     </TableBody>
-                  </Table>
+                    </Table>
                 </div>
-              )}
+                )}
             </CardContent>
-          </Card>
-        </div>
-      </main>
-      <Footer />
+        </Card>
     </div>
   );
 }
