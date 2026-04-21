@@ -110,6 +110,8 @@
         "email": { "type": "string", "format": "email" },
         "phone": { "type": "string" },
         "company": { "type": "string" },
+        "reference": { "type": "string", "description": "How the client heard about us or a referral name." },
+        "country": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "name", "email", "createdAt"]

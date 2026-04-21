@@ -6,7 +6,7 @@ import { collection, query, orderBy } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Users, PlusCircle, Search, Mail, Phone, Building2 } from 'lucide-react';
+import { Users, PlusCircle, Search, Mail, Phone, Building2, Globe, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState, useMemo } from 'react';
@@ -37,6 +37,8 @@ type Client = {
   email: string;
   phone: string;
   company: string;
+  reference: string;
+  country: string;
   createdAt: string;
 };
 
@@ -45,6 +47,8 @@ const clientSchema = z.object({
   email: z.string().email("Invalid email"),
   phone: z.string().optional(),
   company: z.string().optional(),
+  reference: z.string().optional(),
+  country: z.string().optional(),
 });
 
 export default function ClientsPage() {
@@ -63,14 +67,15 @@ export default function ClientsPage() {
 
   const form = useForm<z.infer<typeof clientSchema>>({
     resolver: zodResolver(clientSchema),
-    defaultValues: { name: '', email: '', phone: '', company: '' },
+    defaultValues: { name: '', email: '', phone: '', company: '', reference: '', country: '' },
   });
 
   const filteredClients = useMemo(() => {
     if (!clients) return [];
     return clients.filter(c => 
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      c.company?.toLowerCase().includes(searchTerm.toLowerCase())
+      c.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.country?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [clients, searchTerm]);
 
@@ -97,40 +102,60 @@ export default function ClientsPage() {
           <DialogTrigger asChild>
             <Button><PlusCircle className="mr-2 h-4 w-4" /> Add Client</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>New Client Contact</DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Name</FormLabel>
-                    <FormControl><Input placeholder="Jane Smith" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="email" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Address</FormLabel>
-                    <FormControl><Input type="email" placeholder="jane@company.com" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="company" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company Name</FormLabel>
-                    <FormControl><Input placeholder="Smith & Co." {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="phone" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl><Input placeholder="+1..." {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="name" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Name</FormLabel>
+                      <FormControl><Input placeholder="Jane Smith" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="email" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address</FormLabel>
+                      <FormControl><Input type="email" placeholder="jane@company.com" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="company" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Name</FormLabel>
+                      <FormControl><Input placeholder="Smith & Co." {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="phone" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl><Input placeholder="+1..." {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="country" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country</FormLabel>
+                      <FormControl><Input placeholder="e.g. USA" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="reference" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Reference</FormLabel>
+                      <FormControl><Input placeholder="e.g. LinkedIn" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
                 <DialogFooter>
                   <Button type="submit" className="w-full">Save Contact</Button>
                 </DialogFooter>
@@ -143,7 +168,7 @@ export default function ClientsPage() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
-          placeholder="Search by name or company..." 
+          placeholder="Search by name, company, or country..." 
           className="pl-9"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -165,9 +190,9 @@ export default function ClientsPage() {
                 <TableHeader className="bg-muted/50">
                   <TableRow>
                     <TableHead>Client Name</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
+                    <TableHead>Company & Region</TableHead>
+                    <TableHead>Contact Info</TableHead>
+                    <TableHead>Reference</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -182,21 +207,33 @@ export default function ClientsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1.5 text-xs">
-                          <Building2 className="h-3 w-3 text-muted-foreground" />
-                          {client.company || '-'}
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <Building2 className="h-3 w-3 text-muted-foreground" />
+                            {client.company || '-'}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                            <Globe className="h-3 w-3" />
+                            {client.country || '-'}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Mail className="h-3 w-3" />
-                          {client.email}
+                         <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                            <Mail className="h-3 w-3" />
+                            {client.email}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                            <Phone className="h-3 w-3" />
+                            {client.phone || '-'}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Phone className="h-3 w-3" />
-                          {client.phone || '-'}
+                        <div className="flex items-center gap-1.5 text-[10px]">
+                           <UserCheck className="h-3 w-3 text-primary/60" />
+                           {client.reference || '-'}
                         </div>
                       </TableCell>
                     </TableRow>
