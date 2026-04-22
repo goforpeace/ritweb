@@ -8,13 +8,14 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { FileText, Printer, Download, CreditCard } from 'lucide-react';
+import { FileText, Printer, Download, CreditCard, Building, User, Calendar, Hash } from 'lucide-react';
 import { useFirebase, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import { format, addDays } from 'date-fns';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { useMemo } from 'react';
+import { cn } from '@/lib/utils';
 
 type FinanceRecord = {
   id: string;
@@ -64,7 +65,6 @@ export default function InvoiceModal({ record, project }: InvoiceModalProps) {
   const usersRef = useMemoFirebase(() => firestore ? collection(firestore, 'users') : null, [firestore]);
   const { data: users } = useCollection<UserProfile>(usersRef);
 
-  // Look up the name for the "Processed By" field based on the current user's email
   const processedByName = useMemo(() => {
     if (!users || !user?.email) return user?.displayName || user?.email || 'Administrator';
     const profile = users.find(u => u.email.toLowerCase() === user.email?.toLowerCase());
@@ -73,8 +73,9 @@ export default function InvoiceModal({ record, project }: InvoiceModalProps) {
 
   const invoiceNumber = useMemo(() => {
     const idPart = record.id.slice(-5).toUpperCase();
-    return `INV-${idPart}`;
-  }, [record.id]);
+    const datePart = format(new Date(record.date), "yyyyMM");
+    return `INV-${datePart}-${idPart}`;
+  }, [record.id, record.date]);
 
   const handlePrint = () => {
     window.print();
@@ -87,142 +88,187 @@ export default function InvoiceModal({ record, project }: InvoiceModalProps) {
           <FileText className="h-3.5 w-3.5" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[95dvh] overflow-y-auto print:p-0 print:m-0 print:max-w-full print:bg-white bg-slate-50/50">
-        <DialogHeader className="print:hidden">
-          <DialogTitle>Professional Invoice</DialogTitle>
+      <DialogContent className="max-w-5xl max-h-[95dvh] overflow-y-auto print:p-0 print:m-0 print:max-w-full print:bg-white bg-slate-100 p-0 border-none">
+        <DialogHeader className="print:hidden p-6 bg-background border-b">
+          <DialogTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
+            Invoice Preview
+          </DialogTitle>
         </DialogHeader>
         
-        <div id="invoice-content" className="p-12 bg-white text-black shadow-2xl border-t-[12px] border-primary space-y-12 min-h-[1050px] flex flex-col print:border-t-0 print:shadow-none print:p-12 relative overflow-hidden">
-            {/* Header */}
-            <div className="flex justify-between items-start">
+        <div id="invoice-content" className="mx-auto my-8 print:my-0 w-full max-w-[210mm] bg-white text-slate-900 shadow-2xl print:shadow-none min-h-[297mm] flex flex-col relative overflow-hidden font-sans">
+            {/* Design Accents */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 print:hidden" />
+            <div className="absolute top-0 left-0 w-full h-2 bg-primary" />
+
+            {/* Header Section */}
+            <div className="p-12 pb-8 flex justify-between items-start z-10">
                 <div className="space-y-6">
                     {settings?.logoUrl ? (
-                        <div className="relative h-28 w-72">
+                        <div className="relative h-24 w-64">
                             <Image src={settings.logoUrl} alt="Logo" fill className="object-contain object-left" />
                         </div>
                     ) : (
                         <div className="space-y-1">
                             <h2 className="text-3xl font-black text-primary tracking-tighter uppercase">{settings?.companyName || 'REMOTIZED IT'}</h2>
-                            <p className="text-[10px] text-muted-foreground font-bold tracking-widest">GREEN TECH SOLUTIONS. GLOBAL SUPPORT.</p>
+                            <p className="text-[10px] text-primary/60 font-bold tracking-[0.2em]">SMART SOLUTIONS • GLOBAL SUPPORT</p>
                         </div>
                     )}
                 </div>
-                <div className="text-right text-[11px] leading-relaxed font-medium text-slate-500">
-                    <p className="whitespace-pre-wrap max-w-[200px] ml-auto">{settings?.address || 'Office Address'}</p>
-                    <p className="text-primary font-bold mt-1 underline">{settings?.email || 'email@company.com'}</p>
-                    <p className="mt-0.5">{settings?.phone || ''}</p>
+                <div className="text-right space-y-1">
+                    <h1 className="text-5xl font-black text-slate-200 tracking-tighter uppercase select-none opacity-50">Invoice</h1>
+                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full inline-block">
+                        Status: Paid
+                    </div>
                 </div>
             </div>
 
-            <Separator className="bg-primary/20 h-[1.5px]" />
-
-            {/* Main Title & Meta */}
-            <div className="flex justify-between items-end">
-                <div className="space-y-8">
-                    <h1 className="text-8xl font-black tracking-tighter text-primary/10 select-none absolute top-40 left-12">INVOICE</h1>
-                    <h1 className="text-7xl font-bold tracking-tighter text-primary relative z-10">Invoice</h1>
-                    
-                    <div className="space-y-1">
-                        <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">BILL TO:</h4>
-                        <div className="space-y-0.5">
-                            <p className="text-2xl font-bold text-slate-900">{client?.name || 'Valued Client'}</p>
-                            <p className="text-sm font-bold text-primary/80">{client?.company || 'Organization'}</p>
-                            <p className="text-sm text-slate-600 max-w-xs">{client?.address || ''} {client?.country || ''}</p>
+            {/* Meta Info Grid */}
+            <div className="px-12 grid grid-cols-2 gap-12 mb-12">
+                <div className="space-y-6">
+                    <div>
+                        <h4 className="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-3 flex items-center gap-1.5">
+                            <Building className="h-3 w-3" /> From
+                        </h4>
+                        <div className="text-[12px] leading-relaxed font-medium text-slate-600 space-y-1">
+                            <p className="font-black text-slate-900 text-sm">{settings?.companyName || 'Remotized IT'}</p>
+                            <p className="whitespace-pre-wrap max-w-xs">{settings?.address || 'Your Business Address'}</p>
+                            <p className="text-primary font-bold">{settings?.email || 'billing@company.com'}</p>
+                            <p>{settings?.phone || ''}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 className="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-3 flex items-center gap-1.5">
+                            <User className="h-3 w-3" /> Bill To
+                        </h4>
+                        <div className="text-[12px] leading-relaxed font-medium text-slate-600 space-y-1">
+                            <p className="font-black text-slate-900 text-sm">{client?.name || 'Valued Client'}</p>
+                            <p className="font-bold text-primary/80">{client?.company || 'Organization'}</p>
+                            <p className="max-w-xs">{client?.address || ''} {client?.country || ''}</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-right">
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">INVOICE #</div>
-                    <div className="text-sm font-black text-slate-900">{invoiceNumber}</div>
-                    
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">INVOICE DATE</div>
-                    <div className="text-sm font-bold text-slate-900">{format(new Date(record.date), "dd/MM/yyyy")}</div>
-                    
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">P.O. #</div>
-                    <div className="text-sm font-bold text-slate-900">--</div>
-                    
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">DUE DATE</div>
-                    <div className="text-sm font-bold text-primary">{format(addDays(new Date(record.date), 10), "dd/MM/yyyy")}</div>
-                </div>
-            </div>
-
-            {/* Items Table */}
-            <div className="flex-1 mt-10">
-                <table className="w-full">
-                    <thead>
-                        <tr className="border-y-2 border-slate-900">
-                            <th className="py-4 px-2 text-left text-xs font-black uppercase tracking-widest text-slate-900">NAME / ITEM</th>
-                            <th className="py-4 px-2 text-left text-xs font-black uppercase tracking-widest text-slate-900">DESCRIPTION & PROJECT</th>
-                            <th className="py-4 px-2 text-right text-xs font-black uppercase tracking-widest text-slate-900">TOTAL</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        <tr>
-                            <td className="py-12 px-2 text-lg font-bold text-slate-900 align-top">
-                                {record.title}
-                            </td>
-                            <td className="py-12 px-2 text-sm text-slate-600 max-w-[350px] leading-relaxed align-top">
-                                <div className="font-bold text-primary mb-1">{project?.name || 'General Services'}</div>
-                                <span className="italic opacity-80">Payment for project deliverables and professional services as agreed in scope of work.</span>
-                            </td>
-                            <td className="py-12 px-2 text-right font-mono font-black text-xl text-slate-900 align-top">
-                                ৳ {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Summary / Total Section */}
-            <div className="flex justify-between items-start pt-8 border-t-2 border-slate-100">
-                <div className="space-y-4 max-w-sm">
-                    <div className="flex items-center gap-2 text-primary">
-                        <CreditCard className="h-4 w-4" />
-                        <h4 className="text-xs font-black uppercase tracking-widest">Payment Instructions</h4>
+                <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 flex flex-col justify-center gap-4">
+                    <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+                        <div className="flex items-center gap-2 text-slate-400">
+                           <Hash className="h-4 w-4" />
+                           <span className="text-[10px] font-black uppercase tracking-widest">Invoice Number</span>
+                        </div>
+                        <span className="text-sm font-black text-slate-900">{invoiceNumber}</span>
                     </div>
-                    <div className="text-[11px] leading-relaxed text-slate-600 bg-slate-50 p-4 rounded-lg border border-slate-100 whitespace-pre-wrap">
-                        {settings?.paymentDetails || 'Please contact us for payment details.'}
+                    <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+                        <div className="flex items-center gap-2 text-slate-400">
+                           <Calendar className="h-4 w-4" />
+                           <span className="text-[10px] font-black uppercase tracking-widest">Issue Date</span>
+                        </div>
+                        <span className="text-sm font-bold text-slate-900">{format(new Date(record.date), "PPP")}</span>
                     </div>
-                </div>
-
-                <div className="space-y-4">
-                    <div className="flex justify-end gap-12 items-center">
-                        <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Subtotal:</span>
-                        <span className="text-lg font-bold text-slate-900">৳ {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                    </div>
-                    <div className="flex justify-end gap-12 items-center">
-                        <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Tax (0%):</span>
-                        <span className="text-lg font-bold text-slate-900">৳ 0.00</span>
-                    </div>
-                    <div className="border-t-4 border-slate-900 w-72 pt-4 flex justify-between items-center">
-                        <span className="text-xl font-black text-slate-900 uppercase tracking-tighter">Total:</span>
-                        <span className="text-3xl font-black text-primary">৳ {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2 text-slate-400">
+                           <Calendar className="h-4 w-4" />
+                           <span className="text-[10px] font-black uppercase tracking-widest">Due Date</span>
+                        </div>
+                        <span className="text-sm font-bold text-primary">{format(addDays(new Date(record.date), 10), "PPP")}</span>
                     </div>
                 </div>
             </div>
 
-            {/* Footer Teal Bar */}
-            <div className="bg-primary text-primary-foreground -mx-12 px-12 py-5 mt-auto flex justify-between items-center text-[10px] font-bold tracking-widest uppercase">
-                <div className="flex gap-8">
-                    <span>Invoice Generated: {format(new Date(), "PP")}</span>
-                    <span>Status: PAID</span>
-                </div>
-                <div className="flex gap-2 items-center">
-                    <span className="opacity-70">Processed By:</span>
-                    <span className="text-xs tracking-normal">{processedByName}</span>
+            {/* Table Section */}
+            <div className="flex-1 px-12">
+                <div className="rounded-xl border border-slate-200 overflow-hidden">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="bg-primary text-white">
+                                <th className="py-4 px-6 text-left text-[10px] font-black uppercase tracking-[0.2em]">Service Description</th>
+                                <th className="py-4 px-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">Project</th>
+                                <th className="py-4 px-6 text-right text-[10px] font-black uppercase tracking-[0.2em]">Total Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            <tr className="hover:bg-slate-50 transition-colors">
+                                <td className="py-10 px-6 align-top">
+                                    <p className="text-lg font-black text-slate-900 mb-2">{record.title}</p>
+                                    <p className="text-xs text-slate-500 leading-relaxed italic max-w-sm">
+                                        Professional IT services and deliverables as per the agreed scope and technical documentation.
+                                    </p>
+                                </td>
+                                <td className="py-10 px-6 text-center align-top">
+                                    <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-wider">
+                                        {project?.name || 'Standard Service'}
+                                    </span>
+                                </td>
+                                <td className="py-10 px-6 text-right align-top">
+                                    <span className="text-2xl font-black text-slate-900 tabular-nums">
+                                        ৳ {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+
+            {/* Calculations & Footer Payment Info */}
+            <div className="p-12 pt-8 space-y-12">
+                <div className="flex justify-between items-start">
+                    <div className="space-y-4 max-w-sm">
+                        <div className="flex items-center gap-2 text-primary">
+                            <CreditCard className="h-4 w-4" />
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">Payment Information</h4>
+                        </div>
+                        <div className="text-[11px] leading-relaxed text-slate-500 bg-slate-50 p-6 rounded-xl border border-slate-100 whitespace-pre-wrap font-medium">
+                            {settings?.paymentDetails || 'Please refer to our standard terms or contact our finance department for payment details.'}
+                        </div>
+                    </div>
+
+                    <div className="w-72 space-y-3">
+                        <div className="flex justify-between items-center text-slate-500">
+                            <span className="text-[10px] font-black uppercase tracking-widest">Subtotal</span>
+                            <span className="text-sm font-bold">৳ {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-slate-500">
+                            <span className="text-[10px] font-black uppercase tracking-widest">Tax (0%)</span>
+                            <span className="text-sm font-bold">৳ 0.00</span>
+                        </div>
+                        <div className="h-px bg-slate-100 my-2" />
+                        <div className="flex justify-between items-center bg-primary p-4 rounded-xl text-white shadow-lg shadow-primary/20">
+                            <span className="text-xs font-black uppercase tracking-widest">Total Amount</span>
+                            <span className="text-2xl font-black tabular-nums">৳ {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Final Footer Bar */}
+                <div className="pt-8 border-t border-slate-100 flex justify-between items-end">
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Thank you for your business!</p>
+                        <p className="text-[9px] text-slate-400">Generated on {format(new Date(), "PPpp")}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">Processed By</p>
+                        <div className="flex items-center gap-3 justify-end">
+                            <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-primary font-black text-[10px]">
+                                {processedByName.charAt(0).toUpperCase()}
+                            </div>
+                            <p className="text-sm font-black text-slate-900">{processedByName}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Bottom Accent */}
+            <div className="h-1.5 bg-primary w-full mt-auto" />
         </div>
 
-        <div className="flex justify-end gap-3 print:hidden py-4 border-t bg-muted/30 px-6">
-            <Button variant="outline" onClick={handlePrint}>
+        <div className="flex justify-center gap-4 print:hidden py-8 bg-slate-100">
+            <Button variant="outline" size="lg" onClick={handlePrint} className="bg-white border-slate-200 hover:bg-slate-50 shadow-sm px-8">
                 <Printer className="mr-2 h-4 w-4" />
-                Print / Save PDF
+                Print Invoice
             </Button>
-            <Button className="bg-primary hover:brightness-110" onClick={handlePrint}>
+            <Button size="lg" onClick={handlePrint} className="bg-primary hover:brightness-110 shadow-lg shadow-primary/20 px-8 font-bold">
                 <Download className="mr-2 h-4 w-4" />
-                Download Invoice
+                Download PDF
             </Button>
         </div>
       </DialogContent>
