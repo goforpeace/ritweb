@@ -132,7 +132,8 @@
       "description": "Represents a financial transaction or invoice.",
       "properties": {
         "id": { "type": "string" },
-        "description": { "type": "string" },
+        "reference": { "type": "string", "description": "Short reference or title" },
+        "description": { "type": "string", "description": "Detailed notes or audit log" },
         "amount": { "type": "number" },
         "type": { "type": "string", "enum": ["Income", "Expense"] },
         "status": { "type": "string", "enum": ["Paid", "Unpaid", "Cancelled"] },
@@ -141,7 +142,7 @@
         "imageUrl": { "type": "string" },
         "createdBy": { "type": "string" }
       },
-      "required": ["id", "description", "amount", "type", "status", "date"]
+      "required": ["id", "reference", "amount", "type", "status", "date"]
     }
   },
   "auth": {
