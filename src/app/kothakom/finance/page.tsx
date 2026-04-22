@@ -35,16 +35,6 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import InvoiceSettingsDialog from '@/components/kothakom/InvoiceSettingsDialog';
 import InvoiceModal from '@/components/kothakom/InvoiceModal';
 import {
@@ -276,7 +266,7 @@ export default function FinancePage() {
                     <FormField control={form.control} name="title" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Title</FormLabel>
-                        <FormControl><Input placeholder="E.g., Client Advance or Monthly Rent" {...field} /></FormControl>
+                        <FormControl><Input placeholder="" {...field} /></FormControl>
                         <FormMessage />
                     </FormItem>
                     )} />
@@ -287,7 +277,7 @@ export default function FinancePage() {
                         <FormControl>
                             <div className="relative">
                                 <Textarea 
-                                    placeholder="Details about the transaction. Paste screenshot (Ctrl+V) here to attach..." 
+                                    placeholder="" 
                                     onPaste={handlePaste}
                                     {...field}
                                     className="min-h-[100px] text-xs"
@@ -408,7 +398,7 @@ export default function FinancePage() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
-          placeholder="Search records by title, note or project..." 
+          placeholder="Search records..." 
           className="pl-9 h-11"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}

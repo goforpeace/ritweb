@@ -128,7 +128,7 @@ export default function EditProjectDialog({ project }: { project: Project }) {
                   <FormItem>
                     <FormLabel>Client</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Select Client" /></SelectTrigger></FormControl>
                       <SelectContent>
                         {clients?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                       </SelectContent>
@@ -207,7 +207,7 @@ export default function EditProjectDialog({ project }: { project: Project }) {
                   <FormItem>
                     <FormLabel>Project Manager</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Select Manager" /></SelectTrigger></FormControl>
                       <SelectContent>
                         {users?.map(u => <SelectItem key={u.email} value={u.email}>{u.name}</SelectItem>)}
                       </SelectContent>

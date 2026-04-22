@@ -42,4 +42,10 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Make native date picker icon white for dark theme */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+  }
 }

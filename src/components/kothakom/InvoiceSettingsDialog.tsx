@@ -162,7 +162,7 @@ export default function InvoiceSettingsDialog() {
                 <FormControl>
                     <div className="relative">
                         <LinkIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="https://example.com/logo.png" className="pl-9" {...field} />
+                        <Input placeholder="" className="pl-9" {...field} />
                     </div>
                 </FormControl>
                 <FormDescription className="text-[10px]">Provide a direct link to your company logo.</FormDescription>
@@ -173,7 +173,7 @@ export default function InvoiceSettingsDialog() {
             <FormField control={form.control} name="companyName" render={({ field }) => (
               <FormItem>
                 <FormLabel>Company Name</FormLabel>
-                <FormControl><Input placeholder="Remotized IT" {...field} /></FormControl>
+                <FormControl><Input placeholder="" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -181,7 +181,7 @@ export default function InvoiceSettingsDialog() {
             <FormField control={form.control} name="email" render={({ field }) => (
               <FormItem>
                 <FormLabel>Business Email</FormLabel>
-                <FormControl><Input placeholder="billing@company.com" {...field} /></FormControl>
+                <FormControl><Input placeholder="" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -189,7 +189,7 @@ export default function InvoiceSettingsDialog() {
             <FormField control={form.control} name="phone" render={({ field }) => (
               <FormItem>
                 <FormLabel>Contact Number</FormLabel>
-                <FormControl><Input placeholder="+880..." {...field} /></FormControl>
+                <FormControl><Input placeholder="" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -197,7 +197,7 @@ export default function InvoiceSettingsDialog() {
             <FormField control={form.control} name="address" render={({ field }) => (
               <FormItem>
                 <FormLabel>Office Address</FormLabel>
-                <FormControl><Textarea placeholder="Floor, Building, Road, City..." className="min-h-[80px]" {...field} /></FormControl>
+                <FormControl><Textarea placeholder="" className="min-h-[80px]" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -205,7 +205,7 @@ export default function InvoiceSettingsDialog() {
             <FormField control={form.control} name="paymentDetails" render={({ field }) => (
               <FormItem>
                 <FormLabel>Payment Information</FormLabel>
-                <FormControl><Textarea placeholder="Bank Name, A/C Number, Bkash, etc." className="min-h-[100px]" {...field} /></FormControl>
+                <FormControl><Textarea placeholder="" className="min-h-[100px]" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
