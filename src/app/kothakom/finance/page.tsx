@@ -6,7 +6,7 @@ import { collection, query, orderBy } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Banknote, PlusCircle, Search, TrendingUp, TrendingDown, Wallet, ImageIcon, X, Link as LinkIcon, User, Info } from 'lucide-react';
+import { Banknote, PlusCircle, Search, TrendingUp, TrendingDown, Wallet, ImageIcon, X, Link as LinkIcon, User, Info, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -38,8 +38,8 @@ import Image from 'next/image';
 
 type FinanceRecord = {
   id: string;
-  reference: string;
-  description: string;
+  title: string;
+  referenceNote: string;
   amount: number;
   type: 'Income' | 'Expense';
   status: 'Paid' | 'Unpaid' | 'Cancelled';
@@ -55,8 +55,8 @@ type Project = {
 };
 
 const financeSchema = z.object({
-  reference: z.string().min(2, "Reference is required"),
-  description: z.string().optional(),
+  title: z.string().min(2, "Title is required"),
+  referenceNote: z.string().optional(),
   amount: z.coerce.number().positive("Amount must be positive"),
   type: z.enum(["Income", "Expense"]),
   status: z.enum(["Paid", "Unpaid", "Cancelled"]),
@@ -86,8 +86,8 @@ export default function FinancePage() {
   const form = useForm<z.infer<typeof financeSchema>>({
     resolver: zodResolver(financeSchema),
     defaultValues: { 
-      reference: '',
-      description: '', 
+      title: '',
+      referenceNote: '', 
       amount: 0, 
       type: 'Income', 
       status: 'Paid', 
@@ -107,8 +107,8 @@ export default function FinancePage() {
   const filteredRecords = useMemo(() => {
     if (!records) return [];
     return records.filter(r => 
-        r.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.referenceNote?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (r.projectId && projectMap.get(r.projectId)?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [records, searchTerm, projectMap]);
@@ -122,7 +122,7 @@ export default function FinancePage() {
            const reader = new FileReader();
            reader.onload = (event) => {
              setPastedImage(event.target?.result as string);
-             toast({ title: "Screenshot attached", description: "Reference image added to transaction." });
+             toast({ title: "Attachment detected", description: "Reference image added to transaction." });
            };
            reader.readAsDataURL(blob);
         }
@@ -178,28 +178,28 @@ export default function FinancePage() {
                   </FormItem>
                 )} />
 
-                <FormField control={form.control} name="reference" render={({ field }) => (
+                <FormField control={form.control} name="title" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Reference Title</FormLabel>
-                    <FormControl><Input placeholder="E.g., INV-001 or Client Advance" {...field} /></FormControl>
+                    <FormLabel>Title</FormLabel>
+                    <FormControl><Input placeholder="E.g., Client Advance or Monthly Rent" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
 
-                <FormField control={form.control} name="description" render={({ field }) => (
+                <FormField control={form.control} name="referenceNote" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description & Attachments</FormLabel>
+                    <FormLabel>Reference Note & Attachments</FormLabel>
                     <FormControl>
                         <div className="relative">
                             <Textarea 
-                                placeholder="Details about the transaction. Paste screenshot (Ctrl+V) here..." 
+                                placeholder="Details about the transaction. Paste screenshot (Ctrl+V) here to attach..." 
                                 onPaste={handlePaste}
                                 {...field}
                                 className="min-h-[100px] text-xs"
                             />
                             <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground flex items-center gap-1 opacity-50">
                                 <ImageIcon className="h-3 w-3" />
-                                <span>Paste Screenshots Enabled</span>
+                                <span>Paste Screenshots Support</span>
                             </div>
                         </div>
                     </FormControl>
@@ -209,7 +209,7 @@ export default function FinancePage() {
 
                 {pastedImage && (
                     <div className="relative w-full h-32 border rounded-lg overflow-hidden group">
-                        <Image src={pastedImage} alt="Reference" fill className="object-contain bg-black/5" />
+                        <Image src={pastedImage} alt="Reference Attachment" fill className="object-contain bg-black/5" />
                         <button 
                             type="button" 
                             onClick={() => setPastedImage(null)}
@@ -310,7 +310,7 @@ export default function FinancePage() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
-          placeholder="Search records by reference, description or project..." 
+          placeholder="Search records by title, note or project..." 
           className="pl-9 h-11"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -332,7 +332,7 @@ export default function FinancePage() {
                 <TableHeader className="bg-muted/50">
                   <TableRow>
                     <TableHead>Date</TableHead>
-                    <TableHead>Reference & Details</TableHead>
+                    <TableHead>Title & Reference Note</TableHead>
                     <TableHead>Created By</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
@@ -346,13 +346,13 @@ export default function FinancePage() {
                       <TableCell>
                         <div className="flex flex-col gap-0.5">
                             <span className="font-bold text-sm flex items-center gap-1.5">
-                                {record.reference}
+                                {record.title}
                                 {record.imageUrl && <ImageIcon className="h-3 w-3 text-primary animate-pulse" />}
                             </span>
-                            {record.description && (
+                            {record.referenceNote && (
                                 <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                    <Info className="h-2.5 w-2.5" />
-                                    {record.description.length > 50 ? `${record.description.substring(0, 50)}...` : record.description}
+                                    <FileText className="h-2.5 w-2.5" />
+                                    {record.referenceNote.length > 50 ? `${record.referenceNote.substring(0, 50)}...` : record.referenceNote}
                                 </span>
                             )}
                             {record.projectId && (
