@@ -5,7 +5,7 @@ import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Banknote, PlusCircle, Search, TrendingUp, TrendingDown, Wallet, ImageIcon, X, Link as LinkIcon, User, Info, FileText, Pencil, Trash2, RotateCcw, AlertTriangle, Eye } from 'lucide-react';
+import { Banknote, PlusCircle, Search, TrendingUp, TrendingDown, Wallet, ImageIcon, X, Link as LinkIcon, User, Info, FileText, Pencil, Trash2, RotateCcw, AlertTriangle, Eye, MoreHorizontal, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -49,6 +49,14 @@ import {
 import InvoiceSettingsDialog from '@/components/kothakom/InvoiceSettingsDialog';
 import InvoiceModal from '@/components/kothakom/InvoiceModal';
 import { Separator } from '@/components/ui/separator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type FinanceRecord = {
   id: string;
@@ -432,6 +440,7 @@ export default function FinancePage() {
               <Table>
                 <TableHeader className="bg-muted/50">
                   <TableRow>
+                    <TableHead className="w-[100px]">TID</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Title & Reference Note</TableHead>
                     <TableHead>Created By</TableHead>
@@ -444,6 +453,9 @@ export default function FinancePage() {
                 <TableBody>
                   {filteredRecords.map((record) => (
                     <TableRow key={record.id} className="group">
+                      <TableCell className="text-[10px] font-mono font-bold text-muted-foreground">
+                        #TXN-{record.id.slice(-4).toUpperCase()}
+                      </TableCell>
                       <TableCell className="text-xs whitespace-nowrap">{record.date}</TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-0.5">
@@ -496,43 +508,64 @@ export default function FinancePage() {
                         {record.type === 'Income' ? '+' : '-'}Tk {record.amount.toLocaleString()}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {!showDeleted ? (
-                                <>
-                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setViewingRecord(record)}>
-                                        <Eye className="h-3.5 w-3.5" />
-                                    </Button>
-                                    {record.type === 'Income' && (
-                                        <InvoiceModal record={record} project={projects?.find(p => p.id === record.projectId)} />
-                                    )}
-                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingRecord(record); setIsAddOpen(true); }}>
-                                        <Pencil className="h-3.5 w-3.5" />
-                                    </Button>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive">
-                                                <Trash2 className="h-3.5 w-3.5" />
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Move to Trash?</AlertDialogTitle>
-                                                <AlertDialogDescription>This transaction will be excluded from all financial calculations. You can restore it later from the Trash view.</AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => toggleDelete(record.id, true)} className="bg-destructive text-destructive-foreground">Delete Record</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </>
-                            ) : (
-                                <Button size="sm" variant="ghost" className="h-7 px-2 text-primary" onClick={() => toggleDelete(record.id, false)}>
-                                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-                                    Restore
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
                                 </Button>
-                            )}
-                        </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                {!showDeleted ? (
+                                    <>
+                                        <DropdownMenuItem onClick={() => setViewingRecord(record)}>
+                                            <Eye className="mr-2 h-4 w-4" /> View Details
+                                        </DropdownMenuItem>
+                                        
+                                        {record.type === 'Income' && (
+                                            <InvoiceModal 
+                                                record={record} 
+                                                project={projects?.find(p => p.id === record.projectId)} 
+                                                trigger={
+                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                        <FileDown className="mr-2 h-4 w-4" /> Generate Invoice
+                                                    </DropdownMenuItem>
+                                                }
+                                            />
+                                        )}
+
+                                        <DropdownMenuItem onClick={() => { setEditingRecord(record); setIsAddOpen(true); }}>
+                                            <Pencil className="mr-2 h-4 w-4" /> Edit Record
+                                        </DropdownMenuItem>
+                                        
+                                        <DropdownMenuSeparator />
+                                        
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                    <Trash2 className="mr-2 h-4 w-4" /> Delete Record
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Move to Trash?</AlertDialogTitle>
+                                                    <AlertDialogDescription>This transaction will be excluded from all financial calculations.</AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => toggleDelete(record.id, true)} className="bg-destructive text-destructive-foreground">Delete</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </>
+                                ) : (
+                                    <DropdownMenuItem onClick={() => toggleDelete(record.id, false)}>
+                                        <RotateCcw className="mr-2 h-4 w-4" /> Restore Record
+                                    </DropdownMenuItem>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -556,6 +589,7 @@ export default function FinancePage() {
                         <div>
                             <h3 className="text-xl font-bold">{viewingRecord.title}</h3>
                             <p className="text-sm text-muted-foreground">{viewingRecord.date} • Created by {viewingRecord.createdBy}</p>
+                            <p className="text-[10px] font-mono mt-1 text-primary">TID: #TXN-{viewingRecord.id.slice(-4).toUpperCase()}</p>
                         </div>
                         <div className="text-right">
                              <div className={cn(

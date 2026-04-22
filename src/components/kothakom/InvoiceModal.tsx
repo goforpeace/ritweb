@@ -49,11 +49,12 @@ type UserProfile = {
 interface InvoiceModalProps {
   record: FinanceRecord;
   project?: any;
+  trigger?: React.ReactNode;
 }
 
 const DARK_NAVY = "text-[#000033]"; // Custom Dark Navy Blue
 
-export default function InvoiceModal({ record, project }: InvoiceModalProps) {
+export default function InvoiceModal({ record, project, trigger }: InvoiceModalProps) {
   const { firestore } = useFirebase();
   const { user } = useUser();
   
@@ -85,9 +86,11 @@ export default function InvoiceModal({ record, project }: InvoiceModalProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button size="icon" variant="ghost" className="h-7 w-7 text-primary" title="Create Invoice">
-          <FileText className="h-3.5 w-3.5" />
-        </Button>
+        {trigger || (
+            <Button size="icon" variant="ghost" className="h-7 w-7 text-primary" title="Create Invoice">
+                <FileText className="h-3.5 w-3.5" />
+            </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-5xl max-h-[95dvh] overflow-y-auto print:p-0 print:m-0 print:max-w-full print:bg-white bg-slate-100 p-0 border-none">
         <DialogHeader className="print:hidden p-6 bg-background border-b">
@@ -180,7 +183,7 @@ export default function InvoiceModal({ record, project }: InvoiceModalProps) {
                 <div className="rounded-xl border border-slate-200 overflow-hidden">
                     <table className="w-full">
                         <thead>
-                            <tr className="bg-primary text-white">
+                            <tr className="bg-primary text-slate-950">
                                 <th className="py-4 px-6 text-left text-[10px] font-black uppercase tracking-[0.2em]">Service Description</th>
                                 <th className="py-4 px-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">Project</th>
                                 <th className="py-4 px-6 text-right text-[10px] font-black uppercase tracking-[0.2em]">Total Amount</th>
@@ -233,7 +236,7 @@ export default function InvoiceModal({ record, project }: InvoiceModalProps) {
                             <span className="text-sm font-bold">৳ 0.00</span>
                         </div>
                         <div className="h-px bg-slate-100 my-2" />
-                        <div className="flex justify-between items-center bg-primary p-4 rounded-xl text-white shadow-lg shadow-primary/20">
+                        <div className="flex justify-between items-center bg-primary p-4 rounded-xl text-slate-950 shadow-lg shadow-primary/20">
                             <span className="text-xs font-black uppercase tracking-widest">Total Amount</span>
                             <span className="text-2xl font-black tabular-nums">৳ {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                         </div>
@@ -267,7 +270,7 @@ export default function InvoiceModal({ record, project }: InvoiceModalProps) {
                 <Printer className="mr-2 h-4 w-4" />
                 Print Invoice
             </Button>
-            <Button size="lg" onClick={handlePrint} className="bg-primary hover:brightness-110 shadow-lg shadow-primary/20 px-8 font-bold">
+            <Button size="lg" onClick={handlePrint} className="bg-primary hover:brightness-110 shadow-lg shadow-primary/20 px-8 font-bold text-slate-950">
                 <Download className="mr-2 h-4 w-4" />
                 Download PDF
             </Button>
