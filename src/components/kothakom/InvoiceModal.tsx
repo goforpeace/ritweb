@@ -13,7 +13,6 @@ import { useFirebase, useDoc, useMemoFirebase, useUser, useCollection } from '@/
 import { collection, doc } from 'firebase/firestore';
 import { format, addDays } from 'date-fns';
 import Image from 'next/image';
-import { Separator } from '@/components/ui/separator';
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -51,6 +50,8 @@ interface InvoiceModalProps {
   record: FinanceRecord;
   project?: any;
 }
+
+const DARK_NAVY = "text-[#000033]"; // Custom Dark Navy Blue
 
 export default function InvoiceModal({ record, project }: InvoiceModalProps) {
   const { firestore } = useFirebase();
@@ -105,19 +106,19 @@ export default function InvoiceModal({ record, project }: InvoiceModalProps) {
             <div className="p-12 pb-8 flex justify-between items-start z-10">
                 <div className="space-y-6">
                     {settings?.logoUrl ? (
-                        <div className="relative h-24 w-64">
+                        <div className="relative h-32 w-80">
                             <Image src={settings.logoUrl} alt="Logo" fill className="object-contain object-left" />
                         </div>
                     ) : (
                         <div className="space-y-1">
-                            <h2 className="text-3xl font-black text-primary tracking-tighter uppercase">{settings?.companyName || 'REMOTIZED IT'}</h2>
+                            <h2 className="text-4xl font-black text-primary tracking-tighter uppercase">{settings?.companyName || 'REMOTIZED IT'}</h2>
                             <p className="text-[10px] text-primary/60 font-bold tracking-[0.2em]">SMART SOLUTIONS • GLOBAL SUPPORT</p>
                         </div>
                     )}
                 </div>
                 <div className="text-right space-y-1">
-                    <h1 className="text-5xl font-black text-slate-200 tracking-tighter uppercase select-none opacity-50">Invoice</h1>
-                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full inline-block">
+                    <h1 className={cn("text-6xl font-black tracking-tighter uppercase select-none", DARK_NAVY)}>Invoice</h1>
+                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full inline-block mt-2">
                         Status: Paid
                     </div>
                 </div>
@@ -155,7 +156,7 @@ export default function InvoiceModal({ record, project }: InvoiceModalProps) {
                            <Hash className="h-4 w-4" />
                            <span className="text-[10px] font-black uppercase tracking-widest">Invoice Number</span>
                         </div>
-                        <span className="text-sm font-black text-slate-900">{invoiceNumber}</span>
+                        <span className={cn("text-sm font-black", DARK_NAVY)}>{invoiceNumber}</span>
                     </div>
                     <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                         <div className="flex items-center gap-2 text-slate-400">
@@ -169,7 +170,7 @@ export default function InvoiceModal({ record, project }: InvoiceModalProps) {
                            <Calendar className="h-4 w-4" />
                            <span className="text-[10px] font-black uppercase tracking-widest">Due Date</span>
                         </div>
-                        <span className="text-sm font-bold text-primary">{format(addDays(new Date(record.date), 10), "PPP")}</span>
+                        <span className={cn("text-sm font-black", DARK_NAVY)}>{format(addDays(new Date(record.date), 10), "PPP")}</span>
                     </div>
                 </div>
             </div>
@@ -194,7 +195,7 @@ export default function InvoiceModal({ record, project }: InvoiceModalProps) {
                                     </p>
                                 </td>
                                 <td className="py-10 px-6 text-center align-top">
-                                    <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-wider">
+                                    <span className={cn("inline-block px-4 py-1.5 rounded-full bg-slate-100 text-[11px] font-black uppercase tracking-wider", DARK_NAVY)}>
                                         {project?.name || 'Standard Service'}
                                     </span>
                                 </td>
