@@ -140,7 +140,8 @@
         "date": { "type": "string", "format": "date" },
         "projectId": { "type": "string" },
         "imageUrl": { "type": "string" },
-        "createdBy": { "type": "string" }
+        "createdBy": { "type": "string" },
+        "isDeleted": { "type": "boolean", "default": false }
       },
       "required": ["id", "title", "amount", "type", "status", "date"]
     }
