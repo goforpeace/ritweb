@@ -2,7 +2,7 @@
 'use client';
 
 import { useFirebase, useUser, useMemoFirebase, useCollection, addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
@@ -51,8 +51,10 @@ type Project = {
   name: string;
   description: string;
   status: 'New' | 'In Progress' | 'Hold' | 'Cancelled' | 'Completed';
+  projectType: 'Fixed' | 'Monthly';
   clientId: string;
   budget: number;
+  workHours: number;
   startDate: string;
   handoverDate: string;
   managerEmail: string;
@@ -75,6 +77,7 @@ const projectSchema = z.object({
   name: z.string().min(2, "Project title is required"),
   description: z.string().min(5, "Description is required"),
   status: z.enum(["New", "In Progress", "Hold", "Cancelled", "Completed"]),
+  projectType: z.enum(["Fixed", "Monthly"]),
   clientId: z.string().min(1, "Please select a client"),
   budget: z.coerce.number().min(0),
   startDate: z.string().min(1, "Start date is required"),
@@ -118,6 +121,7 @@ export default function ProjectsPage() {
       name: '', 
       description: '', 
       status: 'New',
+      projectType: 'Fixed',
       clientId: '',
       budget: 0,
       startDate: format(new Date(), "yyyy-MM-dd"),
@@ -136,6 +140,7 @@ export default function ProjectsPage() {
     if (!projectsRef) return;
     addDocumentNonBlocking(projectsRef, {
       ...values,
+      workHours: 0,
       createdAt: new Date().toISOString(),
     });
     toast({ title: "Project Created", description: `${values.name} has been added to portal.` });
@@ -161,7 +166,7 @@ export default function ProjectsPage() {
           <DialogTrigger asChild>
             <Button size="lg"><PlusCircle className="mr-2 h-5 w-5" /> New Project</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto border-border">
             <DialogHeader>
               <DialogTitle>Initiate New Project</DialogTitle>
             </DialogHeader>
@@ -214,17 +219,30 @@ export default function ProjectsPage() {
                   )} />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <FormField control={form.control} name="budget" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Budget Amount (Tk)</FormLabel>
+                      <FormLabel>Budget (Tk)</FormLabel>
                       <FormControl><Input type="number" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="projectType" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Revenue Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="Fixed">Fixed Price</SelectItem>
+                          <SelectItem value="Monthly">Monthly Service</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="status" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Initial Status</FormLabel>
+                      <FormLabel>Status</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                         <SelectContent>
@@ -299,10 +317,10 @@ export default function ProjectsPage() {
                 <TableHeader className="bg-muted/50">
                   <TableRow>
                     <TableHead>Project Title</TableHead>
+                    <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Budget</TableHead>
                     <TableHead>Dates</TableHead>
-                    <TableHead>Team</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -310,6 +328,11 @@ export default function ProjectsPage() {
                   {filteredProjects.map((project) => (
                     <TableRow key={project.id} className="group">
                       <TableCell className="font-bold">{project.name}</TableCell>
+                      <TableCell>
+                         <Badge variant="secondary" className="text-[10px] font-medium">
+                            {project.projectType === 'Monthly' ? 'Retainer' : 'Fixed'}
+                         </Badge>
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={
                           project.status === 'In Progress' ? 'border-primary text-primary' : 
@@ -325,18 +348,6 @@ export default function ProjectsPage() {
                            <span>Starts: {project.startDate}</span>
                            <span className="font-bold text-foreground">Handover: {project.handoverDate}</span>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                         <div className="flex -space-x-2">
-                           <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center text-[8px] text-white border-2 border-background" title="Manager">
-                             M
-                           </div>
-                           {project.assignedEmails?.slice(0, 3).map((_, i) => (
-                              <div key={i} className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-[8px] border-2 border-background">
-                                U
-                              </div>
-                           ))}
-                         </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
