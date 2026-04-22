@@ -1,4 +1,3 @@
-
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -39,7 +38,6 @@ const formSchema = z.object({
   projectType: z.enum(["Fixed", "Monthly"]),
   clientId: z.string().min(1, "Please select a client"),
   budget: z.coerce.number().min(0),
-  workHours: z.coerce.number().min(0),
   startDate: z.string().min(1, "Start date is required"),
   handoverDate: z.string().min(1, "Handover date is required"),
   managerEmail: z.string().email("Please select a manager"),
@@ -83,7 +81,6 @@ export default function EditProjectDialog({ project }: { project: Project }) {
       projectType: project.projectType || 'Fixed',
       clientId: project.clientId,
       budget: project.budget,
-      workHours: project.workHours || 0,
       startDate: project.startDate,
       handoverDate: project.handoverDate,
       managerEmail: project.managerEmail,
@@ -114,7 +111,7 @@ export default function EditProjectDialog({ project }: { project: Project }) {
       <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto border-border">
         <DialogHeader>
           <DialogTitle>Edit Project Profile</DialogTitle>
-          <DialogDescription>Modify core settings and log current project effort.</DialogDescription>
+          <DialogDescription>Modify core settings and project metadata.</DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <Form {...form}>
@@ -166,7 +163,7 @@ export default function EditProjectDialog({ project }: { project: Project }) {
                 )} />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <FormField control={form.control} name="budget" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Budget (Tk)</FormLabel>
@@ -174,16 +171,6 @@ export default function EditProjectDialog({ project }: { project: Project }) {
                     <FormMessage />
                   </FormItem>
                 )} />
-                 <FormField control={form.control} name="workHours" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Effort Logged (Total Hours)</FormLabel>
-                    <FormControl><Input type="number" step="0.5" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                  <FormField control={form.control} name="projectType" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Revenue Type</FormLabel>
