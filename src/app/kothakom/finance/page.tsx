@@ -6,7 +6,7 @@ import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Banknote, PlusCircle, Search, TrendingUp, TrendingDown, Wallet, ImageIcon, X, Link as LinkIcon, User, Info, FileText, Pencil, Trash2, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Banknote, PlusCircle, Search, TrendingUp, TrendingDown, Wallet, ImageIcon, X, Link as LinkIcon, User, Info, FileText, Pencil, Trash2, RotateCcw, AlertTriangle, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -46,6 +46,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import InvoiceSettingsDialog from '@/components/kothakom/InvoiceSettingsDialog';
+import InvoiceModal from '@/components/kothakom/InvoiceModal';
+import { Separator } from '@/components/ui/separator';
 
 type FinanceRecord = {
   id: string;
@@ -64,6 +67,7 @@ type FinanceRecord = {
 type Project = {
     id: string;
     name: string;
+    clientId?: string;
 };
 
 const financeSchema = z.object({
@@ -83,6 +87,7 @@ export default function FinancePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<FinanceRecord | null>(null);
+  const [viewingRecord, setViewingRecord] = useState<FinanceRecord | null>(null);
   const [showDeleted, setShowDeleted] = useState(false);
   const [pastedImage, setPastedImage] = useState<string | null>(null);
 
@@ -222,13 +227,15 @@ export default function FinancePage() {
         </div>
 
         <div className="flex items-center gap-2">
+            <InvoiceSettingsDialog />
             <Button 
                 variant="outline" 
+                size="sm"
                 onClick={() => setShowDeleted(!showDeleted)}
                 className={cn(showDeleted && "bg-destructive/10 border-destructive text-destructive hover:bg-destructive/20")}
             >
                 {showDeleted ? <RotateCcw className="mr-2 h-4 w-4" /> : <Trash2 className="mr-2 h-4 w-4" />}
-                {showDeleted ? "Back to Ledger" : "View Deleted Records"}
+                {showDeleted ? "Ledger" : "Trash"}
             </Button>
 
             <Dialog open={isAddOpen} onOpenChange={(val) => { 
@@ -492,6 +499,12 @@ export default function FinancePage() {
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             {!showDeleted ? (
                                 <>
+                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setViewingRecord(record)}>
+                                        <Eye className="h-3.5 w-3.5" />
+                                    </Button>
+                                    {record.type === 'Income' && (
+                                        <InvoiceModal record={record} project={projects?.find(p => p.id === record.projectId)} />
+                                    )}
                                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingRecord(record); setIsAddOpen(true); }}>
                                         <Pencil className="h-3.5 w-3.5" />
                                     </Button>
@@ -529,6 +542,56 @@ export default function FinancePage() {
           )}
         </CardContent>
       </Card>
+
+      {/* View Record Detail Modal */}
+      <Dialog open={!!viewingRecord} onOpenChange={(val) => !val && setViewingRecord(null)}>
+        <DialogContent className="max-w-2xl">
+            <DialogHeader>
+                <DialogTitle>Transaction Details</DialogTitle>
+                <DialogDescription>Full record information and attachments.</DialogDescription>
+            </DialogHeader>
+            {viewingRecord && (
+                <div className="space-y-6 pt-4">
+                    <div className="flex justify-between items-start border-b pb-4">
+                        <div>
+                            <h3 className="text-xl font-bold">{viewingRecord.title}</h3>
+                            <p className="text-sm text-muted-foreground">{viewingRecord.date} • Created by {viewingRecord.createdBy}</p>
+                        </div>
+                        <div className="text-right">
+                             <div className={cn(
+                                "text-2xl font-black",
+                                viewingRecord.type === 'Income' ? "text-emerald-500" : "text-red-500"
+                             )}>
+                                {viewingRecord.type === 'Income' ? '+' : '-'} Tk {viewingRecord.amount.toLocaleString()}
+                             </div>
+                             <Badge variant="outline">{viewingRecord.status}</Badge>
+                        </div>
+                    </div>
+
+                    {viewingRecord.projectId && (
+                        <div className="flex items-center gap-2 text-sm">
+                            <LinkIcon className="h-4 w-4 text-primary" />
+                            <span className="font-medium text-primary">{projectMap.get(viewingRecord.projectId)}</span>
+                        </div>
+                    )}
+
+                    <div className="space-y-2">
+                        <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Reference Note</h4>
+                        <p className="text-sm leading-relaxed bg-muted/30 p-4 rounded-lg whitespace-pre-wrap">{viewingRecord.referenceNote || 'No notes provided.'}</p>
+                    </div>
+
+                    {viewingRecord.imageUrl && (
+                        <div className="space-y-2">
+                             <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Attachment</h4>
+                             <div className="relative w-full h-80 rounded-lg overflow-hidden border bg-black/5">
+                                <Image src={viewingRecord.imageUrl} alt="Attachment" fill className="object-contain" />
+                             </div>
+                        </div>
+                    )}
+                </div>
+            )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

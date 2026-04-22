@@ -60,6 +60,10 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
 
+    match /settings/{settingId} {
+      allow read, write: if isAuthenticated();
+    }
+
     match /users/{userId} {
       allow get, list: if isAuthenticated();
       allow create, update, delete: if false;

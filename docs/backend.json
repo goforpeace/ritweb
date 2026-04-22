@@ -144,6 +144,20 @@
         "isDeleted": { "type": "boolean", "default": false }
       },
       "required": ["id", "title", "amount", "type", "status", "date"]
+    },
+    "BusinessSettings": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BusinessSettings",
+      "type": "object",
+      "description": "Company information for invoice generation.",
+      "properties": {
+        "companyName": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "paymentDetails": { "type": "string" }
+      }
     }
   },
   "auth": {
@@ -163,7 +177,8 @@
       { "path": "/projects/{projectId}/tasks/{taskId}", "definition": { "entityName": "Task" } },
       { "path": "/projects/{projectId}/tasks/{taskId}/notes/{noteId}", "definition": { "entityName": "Note" } },
       { "path": "/clients/{clientId}", "definition": { "entityName": "Client" } },
-      { "path": "/finance/{recordId}", "definition": { "entityName": "FinanceRecord" } }
+      { "path": "/finance/{recordId}", "definition": { "entityName": "FinanceRecord" } },
+      { "path": "/settings/{settingId}", "definition": { "entityName": "BusinessSettings" } }
     ]
   }
 }
