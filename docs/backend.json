@@ -46,6 +46,7 @@
       "properties": {
         "id": { "type": "string" },
         "content": { "type": "string" },
+        "imageUrl": { "type": "string", "description": "Base64 or URL for screenshots" },
         "createdBy": { "type": "string", "format": "email" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
@@ -93,8 +94,13 @@
         "id": { "type": "string" },
         "name": { "type": "string" },
         "description": { "type": "string" },
-        "status": { "type": "string", "enum": ["Planning", "Active", "On Hold", "Completed"] },
+        "status": { "type": "string", "enum": ["New", "In Progress", "Hold", "Cancelled", "Completed"] },
         "clientId": { "type": "string" },
+        "budget": { "type": "number" },
+        "startDate": { "type": "string", "format": "date" },
+        "handoverDate": { "type": "string", "format": "date" },
+        "managerEmail": { "type": "string" },
+        "assignedEmails": { "type": "array", "items": { "type": "string" } },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "name", "status", "createdAt"]
@@ -110,7 +116,7 @@
         "email": { "type": "string", "format": "email" },
         "phone": { "type": "string" },
         "company": { "type": "string" },
-        "reference": { "type": "string", "description": "How the client heard about us or a referral name." },
+        "reference": { "type": "string" },
         "country": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
@@ -120,7 +126,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "FinanceRecord",
       "type": "object",
-      "description": "Represents a financial transaction or invoice (Teka Poisha).",
+      "description": "Represents a financial transaction or invoice.",
       "properties": {
         "id": { "type": "string" },
         "description": { "type": "string" },
@@ -144,6 +150,8 @@
       { "path": "/internal_tasks/{taskId}", "definition": { "entityName": "Task" } },
       { "path": "/users/{userId}", "definition": { "entityName": "UserProfile" } },
       { "path": "/projects/{projectId}", "definition": { "entityName": "Project" } },
+      { "path": "/projects/{projectId}/notes/{noteId}", "definition": { "entityName": "Note" } },
+      { "path": "/projects/{projectId}/tasks/{taskId}", "definition": { "entityName": "Task" } },
       { "path": "/clients/{clientId}", "definition": { "entityName": "Client" } },
       { "path": "/finance/{recordId}", "definition": { "entityName": "FinanceRecord" } }
     ]

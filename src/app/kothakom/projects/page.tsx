@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useFirebase, useUser, useMemoFirebase, useCollection, addDocumentNonBlocking } from '@/firebase';
+import { useFirebase, useUser, useMemoFirebase, useCollection, addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Briefcase, PlusCircle, Search } from 'lucide-react';
+import { Briefcase, PlusCircle, Search, Trash2, Eye, User, Users as UsersIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -32,20 +32,55 @@ import {
 } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
+import UserSelect from '@/components/kothakom/UserSelect';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Project = {
   id: string;
   name: string;
   description: string;
-  status: 'Planning' | 'Active' | 'On Hold' | 'Completed';
+  status: 'New' | 'In Progress' | 'Hold' | 'Cancelled' | 'Completed';
   clientId: string;
+  budget: number;
+  startDate: string;
+  handoverDate: string;
+  managerEmail: string;
+  assignedEmails: string[];
   createdAt: string;
 };
 
+type Client = {
+  id: string;
+  name: string;
+};
+
+type UserProfile = {
+  id: string;
+  name: string;
+  email: string;
+};
+
 const projectSchema = z.object({
-  name: z.string().min(2, "Name is required"),
+  name: z.string().min(2, "Project title is required"),
   description: z.string().min(5, "Description is required"),
-  status: z.enum(["Planning", "Active", "On Hold", "Completed"]),
+  status: z.enum(["New", "In Progress", "Hold", "Cancelled", "Completed"]),
+  clientId: z.string().min(1, "Please select a client"),
+  budget: z.coerce.number().min(0),
+  startDate: z.string().min(1, "Start date is required"),
+  handoverDate: z.string().min(1, "Handover date is required"),
+  managerEmail: z.string().email("Please select a manager"),
+  assignedEmails: z.array(z.string().email()).optional(),
 });
 
 export default function ProjectsPage() {
@@ -60,16 +95,36 @@ export default function ProjectsPage() {
     return collection(firestore, 'projects');
   }, [firestore, user]);
 
-  const projectsQuery = useMemoFirebase(() => {
-    if (!projectsRef) return null;
-    return query(projectsRef, orderBy('createdAt', 'desc'));
-  }, [projectsRef]);
+  const clientsRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'clients');
+  }, [firestore]);
 
-  const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
+  const usersRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'users');
+  }, [firestore]);
+
+  const { data: projects, isLoading } = useCollection<Project>(
+    useMemoFirebase(() => projectsRef ? query(projectsRef, orderBy('createdAt', 'desc')) : null, [projectsRef])
+  );
+  
+  const { data: clients } = useCollection<Client>(clientsRef);
+  const { data: users } = useCollection<UserProfile>(usersRef);
 
   const form = useForm<z.infer<typeof projectSchema>>({
     resolver: zodResolver(projectSchema),
-    defaultValues: { name: '', description: '', status: 'Active' },
+    defaultValues: { 
+      name: '', 
+      description: '', 
+      status: 'New',
+      clientId: '',
+      budget: 0,
+      startDate: format(new Date(), "yyyy-MM-dd"),
+      handoverDate: format(new Date(), "yyyy-MM-dd"),
+      managerEmail: '',
+      assignedEmails: []
+    },
   });
 
   const filteredProjects = useMemo(() => {
@@ -83,62 +138,135 @@ export default function ProjectsPage() {
       ...values,
       createdAt: new Date().toISOString(),
     });
-    toast({ title: "Project Created", description: `${values.name} has been added.` });
+    toast({ title: "Project Created", description: `${values.name} has been added to portal.` });
     form.reset();
     setIsAddOpen(false);
   }
+
+  const handleDelete = (id: string) => {
+    if (!firestore) return;
+    deleteDocumentNonBlocking(doc(firestore, 'projects', id));
+    toast({ title: "Project Deleted", variant: "destructive" });
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
-          <p className="text-muted-foreground mt-1">Manage ongoing client deliverables and portfolios.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Project Portfolio</h1>
+          <p className="text-muted-foreground mt-1">Manage deliverables, budgets, and team allocations.</p>
         </div>
 
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <Button><PlusCircle className="mr-2 h-4 w-4" /> New Project</Button>
+            <Button size="lg"><PlusCircle className="mr-2 h-5 w-5" /> New Project</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add Project</DialogTitle>
+              <DialogTitle>Initiate New Project</DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Project Name</FormLabel>
-                    <FormControl><Input placeholder="E.g., Cloud Migration" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="name" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Project Title</FormLabel>
+                      <FormControl><Input placeholder="E.g., ERP System Implementation" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="clientId" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Client</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select Client" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          {clients?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+
                 <FormField control={form.control} name="description" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl><Input placeholder="Short project scope..." {...field} /></FormControl>
+                    <FormLabel>Description / Scope</FormLabel>
+                    <FormControl><Input placeholder="Brief project summary..." {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="status" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Initial Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="startDate" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Initial Date</FormLabel>
+                      <FormControl><Input type="date" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="handoverDate" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Handover Date</FormLabel>
+                      <FormControl><Input type="date" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="budget" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Budget Amount (Tk)</FormLabel>
+                      <FormControl><Input type="number" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="status" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Initial Status</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="New">New</SelectItem>
+                          <SelectItem value="In Progress">In Progress</SelectItem>
+                          <SelectItem value="Hold">Hold</SelectItem>
+                          <SelectItem value="Cancelled">Cancelled</SelectItem>
+                          <SelectItem value="Completed">Completed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  <FormField control={form.control} name="managerEmail" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Project Manager</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select Manager" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          {users?.map(u => <SelectItem key={u.email} value={u.email}>{u.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  
+                  <FormField control={form.control} name="assignedEmails" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Assigned Team Members</FormLabel>
                       <FormControl>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <UserSelect field={field} />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Planning">Planning</SelectItem>
-                        <SelectItem value="Active">Active</SelectItem>
-                        <SelectItem value="On Hold">On Hold</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+
                 <DialogFooter>
-                  <Button type="submit" className="w-full">Create Project</Button>
+                  <Button type="submit" className="w-full" size="lg">Create Project Profile</Button>
                 </DialogFooter>
               </form>
             </Form>
@@ -149,8 +277,8 @@ export default function ProjectsPage() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
-          placeholder="Search projects..." 
-          className="pl-9"
+          placeholder="Search projects by title..." 
+          className="pl-9 h-12"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -159,7 +287,7 @@ export default function ProjectsPage() {
       <Card>
         <CardContent className="pt-6">
           {isLoading ? (
-            <div className="py-10 text-center animate-pulse">Loading projects...</div>
+            <div className="py-10 text-center animate-pulse">Syncing portfolio...</div>
           ) : filteredProjects.length === 0 ? (
             <div className="py-20 text-center border-2 border-dashed rounded-lg">
               <Briefcase className="mx-auto h-8 w-8 text-muted-foreground mb-4 opacity-50" />
@@ -170,29 +298,71 @@ export default function ProjectsPage() {
               <Table>
                 <TableHeader className="bg-muted/50">
                   <TableRow>
-                    <TableHead>Project Name</TableHead>
+                    <TableHead>Project Title</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="max-w-xs">Description</TableHead>
+                    <TableHead>Budget</TableHead>
+                    <TableHead>Dates</TableHead>
+                    <TableHead>Team</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredProjects.map((project) => (
-                    <TableRow key={project.id}>
-                      <TableCell className="font-medium">{project.name}</TableCell>
+                    <TableRow key={project.id} className="group">
+                      <TableCell className="font-bold">{project.name}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={
-                          project.status === 'Active' ? 'border-primary text-primary' : 
-                          project.status === 'Completed' ? 'border-green-500 text-green-500' : ''
+                          project.status === 'In Progress' ? 'border-primary text-primary' : 
+                          project.status === 'Completed' ? 'border-green-500 text-green-500' : 
+                          project.status === 'Cancelled' ? 'border-red-500 text-red-500' : ''
                         }>
                           {project.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {format(new Date(project.createdAt), "MMM d, yyyy")}
+                      <TableCell className="font-mono text-xs">Tk {project.budget?.toLocaleString()}</TableCell>
+                      <TableCell className="text-[10px] text-muted-foreground whitespace-nowrap">
+                        <div className="flex flex-col">
+                           <span>Starts: {project.startDate}</span>
+                           <span className="font-bold text-foreground">Handover: {project.handoverDate}</span>
+                        </div>
                       </TableCell>
-                      <TableCell className="max-w-xs truncate text-xs text-muted-foreground">
-                        {project.description}
+                      <TableCell>
+                         <div className="flex -space-x-2">
+                           <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center text-[8px] text-white border-2 border-background" title="Manager">
+                             M
+                           </div>
+                           {project.assignedEmails?.slice(0, 3).map((_, i) => (
+                              <div key={i} className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-[8px] border-2 border-background">
+                                U
+                              </div>
+                           ))}
+                         </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button asChild variant="ghost" size="icon">
+                            <Link href={`/kothakom/projects/${project.id}`}>
+                              <Eye className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Project?</AlertDialogTitle>
+                                <AlertDialogDescription>This will permanently remove this project profile.</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(project.id)} className="bg-destructive text-destructive-foreground">Delete</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

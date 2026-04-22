@@ -41,6 +41,12 @@ service cloud.firestore {
 
     match /projects/{projectId} {
       allow read, write: if isAuthenticated();
+      match /notes/{noteId} {
+        allow read, write: if isAuthenticated();
+      }
+      match /tasks/{taskId} {
+        allow read, write: if isAuthenticated();
+      }
     }
 
     match /clients/{clientId} {
