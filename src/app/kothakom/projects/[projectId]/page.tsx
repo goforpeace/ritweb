@@ -4,7 +4,7 @@ import { useFirebase, useUser, useMemoFirebase, useDoc, useCollection, updateDoc
 import { collection, doc, increment } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, User, Wallet, Building2, LayoutPanelLeft, Users, Timer, Plus, Clock, CheckCircle2, Info } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Wallet, Building2, LayoutPanelLeft, Users, Timer, Plus, Clock, CheckCircle2, Info, TrendingUp, TrendingDown } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectNotes } from '@/components/kothakom/ProjectNotes';
 import { ProjectTasksTable } from '@/components/kothakom/ProjectTasksTable';
@@ -46,6 +46,15 @@ type UserProfile = {
   email: string;
 };
 
+type FinanceRecord = {
+    id: string;
+    projectId?: string;
+    amount: number;
+    type: 'Income' | 'Expense';
+    status: 'Paid' | 'Unpaid' | 'Cancelled';
+    isDeleted?: boolean;
+};
+
 export default function ProjectDetailPage({ params }: { params: { projectId: string } }) {
   const { firestore } = useFirebase();
   const { projectId } = params;
@@ -65,9 +74,20 @@ export default function ProjectDetailPage({ params }: { params: { projectId: str
   const usersRef = useMemoFirebase(() => firestore ? collection(firestore, 'users') : null, [firestore]);
   const { data: users } = useCollection<UserProfile>(usersRef);
 
+  const financeRef = useMemoFirebase(() => firestore ? collection(firestore, 'finance') : null, [firestore]);
+  const { data: financeRecords } = useCollection<FinanceRecord>(financeRef);
+
   const selectedClient = useMemo(() => clients?.find(c => c.id === project?.clientId), [clients, project]);
   const manager = useMemo(() => users?.find(u => u.email === project?.managerEmail), [users, project]);
   const teamMembers = useMemo(() => users?.filter(u => project?.assignedEmails?.includes(u.email)), [users, project]);
+
+  const projectFinanceStats = useMemo(() => {
+    if (!financeRecords || !projectId) return { income: 0, expense: 0 };
+    const projectRecords = financeRecords.filter(r => r.projectId === projectId && !r.isDeleted && r.status === 'Paid');
+    const income = projectRecords.filter(r => r.type === 'Income').reduce((sum, r) => sum + r.amount, 0);
+    const expense = projectRecords.filter(r => r.type === 'Expense').reduce((sum, r) => sum + r.amount, 0);
+    return { income, expense };
+  }, [financeRecords, projectId]);
 
   const handleAddHours = () => {
     if (!projectRef || !addHoursValue) return;
@@ -134,7 +154,7 @@ export default function ProjectDetailPage({ params }: { params: { projectId: str
             <div className="p-8 space-y-2">
                 <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                     <Wallet className="h-3 w-3 text-emerald-500" /> 
-                    Budget Amount
+                    Budget & Type
                 </h4>
                 <div className="flex flex-col">
                     <p className="text-2xl font-black text-emerald-500">Tk {project.budget?.toLocaleString() || '0'}</p>
@@ -145,7 +165,7 @@ export default function ProjectDetailPage({ params }: { params: { projectId: str
             <div className="p-8 space-y-2">
                 <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                     <Calendar className="h-3 w-3 text-primary" /> 
-                    Timeline & Handover
+                    Timeline
                 </h4>
                 <div className="flex flex-col">
                     <p className="text-sm font-bold">Starts: <span className="font-normal text-muted-foreground">{project.startDate}</span></p>
@@ -183,7 +203,6 @@ export default function ProjectDetailPage({ params }: { params: { projectId: str
                                     />
                                     <Button className="h-10 px-6 font-bold" onClick={handleAddHours}>Log</Button>
                                 </div>
-                                <p className="text-[10px] text-muted-foreground italic">Logged hours are added to the total accumulated effort.</p>
                             </div>
                         </PopoverContent>
                     </Popover>
@@ -193,13 +212,41 @@ export default function ProjectDetailPage({ params }: { params: { projectId: str
             <div className="p-8 space-y-2">
                 <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                     <Building2 className="h-3 w-3 text-primary/60" /> 
-                    Client Partner
+                    Client
                 </h4>
                 <div className="flex flex-col">
                     <p className="text-sm font-bold truncate">{selectedClient?.name || 'Loading...'}</p>
                     <p className="text-[10px] text-muted-foreground truncate uppercase">{selectedClient?.company || 'Organization'}</p>
                 </div>
             </div>
+          </div>
+
+          {/* Financial Tracking Section (Dynamic) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 divide-x border-b border-border/40 bg-muted/5">
+              <div className="p-6 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-emerald-500/10">
+                          <TrendingUp className="h-5 w-5 text-emerald-500" />
+                      </div>
+                      <div>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Income</p>
+                          <p className="text-xl font-black text-emerald-500">Tk {projectFinanceStats.income.toLocaleString()}</p>
+                      </div>
+                  </div>
+                  <Badge variant="outline" className="border-emerald-500/30 text-emerald-500 bg-emerald-500/5">Project Revenue</Badge>
+              </div>
+              <div className="p-6 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-red-500/10">
+                          <TrendingDown className="h-5 w-5 text-red-500" />
+                      </div>
+                      <div>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Expenses</p>
+                          <p className="text-xl font-black text-red-500">Tk {projectFinanceStats.expense.toLocaleString()}</p>
+                      </div>
+                  </div>
+                  <Badge variant="outline" className="border-red-500/30 text-red-500 bg-red-500/5">Operational Cost</Badge>
+              </div>
           </div>
 
           {/* Description & Team Section */}

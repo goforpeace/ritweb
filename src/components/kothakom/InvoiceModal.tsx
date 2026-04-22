@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -15,6 +14,7 @@ import { doc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
+import { useMemo } from 'react';
 
 type FinanceRecord = {
   id: string;
@@ -53,6 +53,12 @@ export default function InvoiceModal({ record, project }: InvoiceModalProps) {
   const clientRef = useMemoFirebase(() => (firestore && project?.clientId) ? doc(firestore, 'clients', project.clientId) : null, [firestore, project]);
   const { data: client } = useDoc<Client>(clientRef);
 
+  const invoiceNumber = useMemo(() => {
+    const datePart = format(new Date(record.date), "yyyyMM");
+    const idPart = record.id.slice(-4).toUpperCase();
+    return `INV-${datePart}-${idPart}`;
+  }, [record.id, record.date]);
+
   const handlePrint = () => {
     window.print();
   };
@@ -88,7 +94,7 @@ export default function InvoiceModal({ record, project }: InvoiceModalProps) {
                 </div>
                 <div className="text-right space-y-1">
                     <h1 className="text-4xl font-black tracking-tighter text-muted-foreground/20">INVOICE</h1>
-                    <p className="text-sm font-bold">#{record.id.slice(-6).toUpperCase()}</p>
+                    <p className="text-sm font-bold">{invoiceNumber}</p>
                     <p className="text-[10px]">Date: {format(new Date(record.date), "PPP")}</p>
                 </div>
             </div>
