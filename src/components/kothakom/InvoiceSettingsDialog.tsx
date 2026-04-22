@@ -1,4 +1,3 @@
-
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,13 +20,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { Settings, ImageIcon, X } from 'lucide-react';
+import { Settings, ImageIcon, X, Link as LinkIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
@@ -37,6 +37,7 @@ const formSchema = z.object({
   phone: z.string().min(5, "Phone is required"),
   email: z.string().email("Invalid email"),
   paymentDetails: z.string().min(5, "Payment info is required"),
+  logoUrl: z.string().optional(),
 });
 
 export default function InvoiceSettingsDialog() {
@@ -46,7 +47,7 @@ export default function InvoiceSettingsDialog() {
   const [pastedLogo, setPastedLogo] = useState<string | null>(null);
 
   const settingsRef = useMemoFirebase(() => firestore ? doc(firestore, 'settings', 'business') : null, [firestore]);
-  const { data: settings, isLoading } = useDoc(settingsRef);
+  const { data: settings, isLoading } = useDoc<any>(settingsRef);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,6 +57,7 @@ export default function InvoiceSettingsDialog() {
       phone: '',
       email: '',
       paymentDetails: '',
+      logoUrl: '',
     },
   });
 
@@ -67,8 +69,13 @@ export default function InvoiceSettingsDialog() {
         phone: settings.phone || '',
         email: settings.email || '',
         paymentDetails: settings.paymentDetails || '',
+        logoUrl: settings.logoUrl || '',
       });
-      setPastedLogo(settings.logoUrl || null);
+      if (settings.logoUrl && settings.logoUrl.startsWith('data:image')) {
+          setPastedLogo(settings.logoUrl);
+      } else {
+          setPastedLogo(null);
+      }
     }
   }, [settings, form]);
 
@@ -80,8 +87,10 @@ export default function InvoiceSettingsDialog() {
         if (blob) {
            const reader = new FileReader();
            reader.onload = (event) => {
-             setPastedLogo(event.target?.result as string);
-             toast({ title: "Logo detected", description: "Image added to business profile." });
+             const base64 = event.target?.result as string;
+             setPastedLogo(base64);
+             form.setValue('logoUrl', base64);
+             toast({ title: "Logo detected", description: "Image added from clipboard." });
            };
            reader.readAsDataURL(blob);
         }
@@ -94,12 +103,14 @@ export default function InvoiceSettingsDialog() {
 
     setDocumentNonBlocking(settingsRef, {
       ...values,
-      logoUrl: pastedLogo || null,
+      logoUrl: values.logoUrl || null,
     }, { merge: true });
 
     toast({ title: 'Settings Saved', description: 'Your business profile has been updated.' });
     setIsOpen(false);
   }
+
+  const currentLogo = form.watch('logoUrl');
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -119,15 +130,18 @@ export default function InvoiceSettingsDialog() {
             <div className="space-y-2">
                 <FormLabel>Company Logo</FormLabel>
                 <div 
-                    className="h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center relative overflow-hidden bg-muted/20"
+                    className="h-40 border-2 border-dashed rounded-lg flex flex-col items-center justify-center relative overflow-hidden bg-muted/20"
                     onPaste={handlePaste}
                 >
-                    {pastedLogo ? (
+                    {currentLogo ? (
                         <>
-                            <Image src={pastedLogo} alt="Logo Preview" fill className="object-contain" />
+                            <Image src={currentLogo} alt="Logo Preview" fill className="object-contain p-2" />
                             <button 
                                 type="button" 
-                                onClick={() => setPastedLogo(null)}
+                                onClick={() => {
+                                    setPastedLogo(null);
+                                    form.setValue('logoUrl', '');
+                                }}
                                 className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 shadow-lg z-10"
                             >
                                 <X className="h-4 w-4" />
@@ -136,11 +150,25 @@ export default function InvoiceSettingsDialog() {
                     ) : (
                         <div className="text-center p-4">
                             <ImageIcon className="h-8 w-8 mx-auto text-muted-foreground opacity-50" />
-                            <p className="text-[10px] text-muted-foreground mt-2">Paste your logo here (Ctrl + V)</p>
+                            <p className="text-[10px] text-muted-foreground mt-2">Paste image (Ctrl+V) or enter URL below</p>
                         </div>
                     )}
                 </div>
             </div>
+
+            <FormField control={form.control} name="logoUrl" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Logo Image URL</FormLabel>
+                <FormControl>
+                    <div className="relative">
+                        <LinkIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input placeholder="https://example.com/logo.png" className="pl-9" {...field} />
+                    </div>
+                </FormControl>
+                <FormDescription className="text-[10px]">Provide a direct link to your company logo.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )} />
 
             <FormField control={form.control} name="companyName" render={({ field }) => (
               <FormItem>
