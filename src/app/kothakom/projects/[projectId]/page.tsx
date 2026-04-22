@@ -4,7 +4,7 @@ import { useFirebase, useUser, useMemoFirebase, useDoc, useCollection, updateDoc
 import { collection, doc, increment } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, User, Wallet, Building2, LayoutPanelLeft, Users, Timer, Plus, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Wallet, Building2, LayoutPanelLeft, Users, Timer, Plus, Clock, CheckCircle2, Info } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectNotes } from '@/components/kothakom/ProjectNotes';
 import { ProjectTasksTable } from '@/components/kothakom/ProjectTasksTable';
@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 type Project = {
   id: string;
@@ -85,7 +86,7 @@ export default function ProjectDetailPage({ params }: { params: { projectId: str
   if (!project) return <div className="py-20 text-center">Project not found.</div>;
 
   return (
-    <div className="flex flex-col h-full space-y-8 animate-in fade-in duration-500 pb-10">
+    <div className="flex flex-col space-y-8 animate-in fade-in duration-500 pb-10">
       {/* Top Header & Actions */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -93,10 +94,14 @@ export default function ProjectDetailPage({ params }: { params: { projectId: str
              <Link href="/kothakom/projects"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-               <Badge variant="secondary" className="bg-primary/10 text-primary uppercase text-[10px] tracking-wider">{project.status}</Badge>
-               <span className="font-mono text-muted-foreground/60 uppercase">#PRJ-{projectId.slice(-4)}</span>
+               <span className="font-mono text-primary font-bold uppercase">#PRJ-{projectId.slice(-4)}</span>
+               <Separator orientation="vertical" className="h-3" />
+               <span className="flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  Created {format(new Date(project.createdAt), "PPP")}
+               </span>
             </div>
           </div>
         </div>
@@ -105,147 +110,155 @@ export default function ProjectDetailPage({ params }: { params: { projectId: str
         </div>
       </div>
 
-      {/* Hero Summary Card */}
-      <Card className="border-border/50 shadow-lg bg-card/40 backdrop-blur-sm overflow-hidden">
-        <CardContent className="p-8 space-y-8">
-          {/* Top Row: Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
-            <StatItem 
-                icon={Calendar} 
-                label="Project Timeline" 
-                value={`${project.startDate} — ${project.handoverDate}`}
-                subValue="Start to Handover"
-            />
-            
-            <StatItem 
-                icon={Wallet} 
-                label={project.projectType === 'Monthly' ? 'Monthly Fee' : 'Fixed Budget'} 
-                value={`Tk ${project.budget?.toLocaleString() || '0'}`}
-                iconColor="text-emerald-500"
-                valueColor="text-emerald-500"
-            />
-
-            <div className="space-y-1">
-              <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
-                <Timer className="h-3 w-3 text-primary" /> Logged Effort
-              </h4>
-              <div className="flex items-center gap-2 pt-1">
-                  <p className="text-lg font-extrabold">{project.workHours || 0} <span className="text-xs font-normal text-muted-foreground">hrs</span></p>
-                  <Popover>
-                      <PopoverTrigger asChild>
-                          <Button size="icon" variant="outline" className="h-6 w-6 rounded-full border-primary/30 text-primary hover:bg-primary/10">
-                              <Plus className="h-3 w-3" />
-                          </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-48 p-4 shadow-xl" align="start">
-                          <div className="space-y-3">
-                              <div className='flex items-center gap-2'>
-                                <Clock className='h-4 w-4 text-primary' />
-                                <p className="text-xs font-bold uppercase tracking-wider">Log Work Hours</p>
-                              </div>
-                              <div className="flex gap-2">
-                                  <Input 
-                                      type="number" 
-                                      className="h-9 text-sm" 
-                                      value={addHoursValue} 
-                                      onChange={(e) => setAddHoursValue(e.target.value)} 
-                                  />
-                                  <Button size="sm" className="h-9 px-4" onClick={handleAddHours}>Log</Button>
-                              </div>
-                          </div>
-                      </PopoverContent>
-                  </Popover>
-              </div>
+      {/* Project Summary Pane (Hero Card) */}
+      <Card className="border-border/50 shadow-xl bg-card/60 backdrop-blur-md overflow-hidden ring-1 ring-white/5">
+        <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-8">
+            <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                    <LayoutPanelLeft className="h-4 w-4 text-primary" />
+                    Project Overview
+                </CardTitle>
+                <Badge className={cn(
+                    "px-4 py-1 font-bold uppercase text-[10px] tracking-widest",
+                    project.status === 'Completed' ? "bg-emerald-500" :
+                    project.status === 'In Progress' ? "bg-blue-500" :
+                    project.status === 'Cancelled' ? "bg-destructive" : "bg-muted text-foreground"
+                )}>
+                    {project.status}
+                </Badge>
             </div>
-
-            <StatItem 
-                icon={Building2} 
-                label="Client Partner" 
-                value={selectedClient?.name || 'Loading...'}
-                subValue={selectedClient?.company || 'Not Specified'}
-            />
-
-             <div className="space-y-1">
-                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
-                    <LayoutPanelLeft className="h-3 w-3 text-accent" /> Revenue Model
+        </CardHeader>
+        <CardContent className="p-0">
+          {/* Main Metrics Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-x divide-y md:divide-y-0 border-b border-border/40">
+            <div className="p-8 space-y-2">
+                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                    <Wallet className="h-3 w-3 text-emerald-500" /> 
+                    Budget Amount
                 </h4>
-                <p className="text-sm font-bold pt-1">{project.projectType === 'Monthly' ? 'Retainer (Monthly)' : 'Fixed Bid'}</p>
-                <p className="text-[10px] text-muted-foreground">Business Structure</p>
+                <div className="flex flex-col">
+                    <p className="text-2xl font-black text-emerald-500">Tk {project.budget?.toLocaleString() || '0'}</p>
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase">{project.projectType === 'Monthly' ? 'Monthly Retainer' : 'Fixed Price Project'}</p>
+                </div>
+            </div>
+
+            <div className="p-8 space-y-2">
+                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                    <Calendar className="h-3 w-3 text-primary" /> 
+                    Timeline & Handover
+                </h4>
+                <div className="flex flex-col">
+                    <p className="text-sm font-bold">Starts: <span className="font-normal text-muted-foreground">{project.startDate}</span></p>
+                    <p className="text-sm font-bold">Handover: <span className="text-primary font-black underline decoration-primary/30 underline-offset-4">{project.handoverDate}</span></p>
+                </div>
+            </div>
+
+            <div className="p-8 space-y-2">
+                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                    <Timer className="h-3 w-3 text-accent" /> 
+                    Logged Effort
+                </h4>
+                <div className="flex items-center gap-4">
+                    <div>
+                        <p className="text-2xl font-black text-accent">{project.workHours || 0} <span className="text-xs font-normal text-muted-foreground">hrs</span></p>
+                    </div>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button size="icon" className="h-10 w-10 rounded-full shadow-lg hover:scale-110 transition-transform">
+                                <Plus className="h-5 w-5" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-56 p-4 shadow-2xl border-primary/20" align="start">
+                            <div className="space-y-4">
+                                <div className='flex items-center gap-2 border-b pb-2'>
+                                    <Clock className='h-4 w-4 text-primary' />
+                                    <p className="text-xs font-bold uppercase tracking-wider">Log Work Hours</p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Input 
+                                        type="number" 
+                                        className="h-10 text-sm font-bold" 
+                                        value={addHoursValue} 
+                                        onChange={(e) => setAddHoursValue(e.target.value)} 
+                                    />
+                                    <Button className="h-10 px-6 font-bold" onClick={handleAddHours}>Log</Button>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground italic">Logged hours are added to the total accumulated effort.</p>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                </div>
+            </div>
+
+            <div className="p-8 space-y-2">
+                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                    <Building2 className="h-3 w-3 text-primary/60" /> 
+                    Client Partner
+                </h4>
+                <div className="flex flex-col">
+                    <p className="text-sm font-bold truncate">{selectedClient?.name || 'Loading...'}</p>
+                    <p className="text-[10px] text-muted-foreground truncate uppercase">{selectedClient?.company || 'Organization'}</p>
+                </div>
             </div>
           </div>
 
-          <Separator className="bg-border/40" />
-
-          {/* Middle Row: Description */}
-          <div className="space-y-3">
-            <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-2">
-              <LayoutPanelLeft className="h-3 w-3" /> Description & Scope
-            </h4>
-            <div className="text-sm leading-relaxed text-foreground/90 bg-muted/20 p-6 rounded-xl border border-border/20 whitespace-pre-wrap min-h-[100px] break-words">
-              {project.description || "No detailed summary provided for this project profile."}
-            </div>
-          </div>
-
-          <Separator className="bg-border/40" />
-
-          {/* Bottom Row: Team */}
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-2">
-              <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
-                <User className="h-3 w-3 text-primary/60" /> Lead Manager
-              </h4>
-              <div className='flex items-center gap-3 bg-background/30 p-3 rounded-lg border border-border/10'>
-                <div className='h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary text-xs uppercase'>
-                    {manager?.name?.substring(0,2) || '??'}
+          {/* Description & Team Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 divide-x divide-border/40">
+            <div className="lg:col-span-2 p-8 space-y-4">
+                <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-2">
+                    <Info className="h-3 w-3" /> Description & Scope
+                </h4>
+                <div className="text-sm leading-relaxed text-foreground/90 bg-muted/20 p-6 rounded-xl border border-border/20 whitespace-pre-wrap min-h-[120px] break-words shadow-inner">
+                    {project.description || "No detailed summary provided for this project profile."}
                 </div>
-                <div>
-                    <p className="text-sm font-bold">{manager?.name || 'Awaiting Manager'}</p>
-                    <p className="text-[10px] text-muted-foreground">{project.managerEmail}</p>
-                </div>
-              </div>
             </div>
 
-            <div className="space-y-2">
-              <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
-                <Users className="h-3 w-3 text-primary/60" /> Assigned Personnel
-              </h4>
-              <div className="flex flex-wrap gap-2 pt-1">
-                {teamMembers?.map(member => (
-                  <Badge key={member.id} variant="secondary" className="px-3 py-1 text-[11px] font-medium bg-secondary/40 border-border/40">
-                    {member.name}
-                  </Badge>
-                ))}
-                {(!teamMembers || teamMembers.length === 0) && <p className="text-xs italic text-muted-foreground pt-2">No team members allocated yet.</p>}
-              </div>
+            <div className="p-8 space-y-6 bg-muted/10">
+                <div className="space-y-3">
+                    <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                        <User className="h-3 w-3 text-primary/60" /> Lead Manager
+                    </h4>
+                    <div className='flex items-center gap-3 bg-background/50 p-3 rounded-lg border border-border/10'>
+                        <div className='h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary text-xs uppercase shadow-sm'>
+                            {manager?.name?.substring(0,2) || '??'}
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold leading-none">{manager?.name || 'Awaiting Manager'}</p>
+                            <p className="text-[10px] text-muted-foreground mt-1">{project.managerEmail}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-3">
+                    <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                        <Users className="h-3 w-3 text-primary/60" /> Assigned Personnel
+                    </h4>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                        {teamMembers?.map(member => (
+                            <Badge key={member.id} variant="secondary" className="px-3 py-1 text-[10px] font-medium bg-secondary/40 border-border/40 hover:bg-secondary/60">
+                                {member.name}
+                            </Badge>
+                        ))}
+                        {(!teamMembers || teamMembers.length === 0) && <p className="text-xs italic text-muted-foreground">No team members allocated yet.</p>}
+                    </div>
+                </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Main Workspace (Notes and Tasks moved down) */}
-      <div className="grid grid-cols-12 gap-8 items-stretch min-h-[600px]">
-        {/* Activity Pane */}
-        <div className="col-span-12 lg:col-span-4 border border-border/40 rounded-2xl bg-card/20 flex flex-col h-full overflow-hidden shadow-sm">
+      {/* Main Workspace (Activity Feed & Tasks) */}
+      <div className="grid grid-cols-12 gap-8 items-stretch min-h-[700px]">
+        {/* Activity Pane (Left) */}
+        <div className="col-span-12 lg:col-span-4 border border-border/40 rounded-2xl bg-card/40 flex flex-col h-full overflow-hidden shadow-sm">
           <ProjectNotes projectId={projectId} />
         </div>
 
-        {/* Tasks Pane */}
-        <div className="col-span-12 lg:col-span-8 border border-border/40 rounded-2xl bg-card/20 flex flex-col h-full overflow-hidden shadow-sm">
+        {/* Project Task Pane (Right) */}
+        <div className="col-span-12 lg:col-span-8 border border-border/40 rounded-2xl bg-card/40 flex flex-col h-full overflow-hidden shadow-sm">
           <ProjectTasksTable projectId={projectId} />
         </div>
       </div>
-    </div>
-  );
-}
-
-function StatItem({ icon: Icon, label, value, subValue, iconColor = "text-primary", valueColor }: any) {
-  return (
-    <div className="space-y-1">
-      <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
-        <Icon className={cn("h-3 w-3", iconColor)} /> {label}
-      </h4>
-      <p className={cn("text-sm font-extrabold pt-1", valueColor)}>{value}</p>
-      {subValue && <p className="text-[10px] text-muted-foreground">{subValue}</p>}
     </div>
   );
 }
