@@ -62,6 +62,7 @@
         "title": { "type": "string" },
         "summary": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
+        "dueDate": { "type": "string", "format": "date" },
         "status": {
           "type": "string",
           "enum": ["New", "In Progress", "Completed"]
@@ -71,7 +72,7 @@
           "items": { "type": "string", "format": "email" }
         }
       },
-      "required": ["id", "title", "summary", "createdAt"]
+      "required": ["id", "title", "createdAt"]
     },
     "UserProfile": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -147,11 +148,14 @@
       { "path": "/contact_form_submissions/{submissionId}", "definition": { "entityName": "ContactFormSubmission" } },
       { "path": "/call_requests/{requestId}", "definition": { "entityName": "CallRequest" } },
       { "path": "/tasks/{taskId}", "definition": { "entityName": "Task" } },
+      { "path": "/tasks/{taskId}/notes/{noteId}", "definition": { "entityName": "Note" } },
       { "path": "/internal_tasks/{taskId}", "definition": { "entityName": "Task" } },
+      { "path": "/internal_tasks/{taskId}/notes/{noteId}", "definition": { "entityName": "Note" } },
       { "path": "/users/{userId}", "definition": { "entityName": "UserProfile" } },
       { "path": "/projects/{projectId}", "definition": { "entityName": "Project" } },
       { "path": "/projects/{projectId}/notes/{noteId}", "definition": { "entityName": "Note" } },
       { "path": "/projects/{projectId}/tasks/{taskId}", "definition": { "entityName": "Task" } },
+      { "path": "/projects/{projectId}/tasks/{taskId}/notes/{noteId}", "definition": { "entityName": "Note" } },
       { "path": "/clients/{clientId}", "definition": { "entityName": "Client" } },
       { "path": "/finance/{recordId}", "definition": { "entityName": "FinanceRecord" } }
     ]
