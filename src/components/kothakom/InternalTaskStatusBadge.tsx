@@ -37,17 +37,19 @@ const statusConfig: Record<
 interface InternalTaskStatusBadgeProps {
   currentStatus: TaskStatus;
   documentId: string;
+  collectionPath?: string; // Optional path, defaults to 'internal_tasks'
 }
 
 export function InternalTaskStatusBadge({
   currentStatus,
   documentId,
+  collectionPath = 'internal_tasks',
 }: InternalTaskStatusBadgeProps) {
   const { firestore } = useFirebase();
 
   const handleStatusChange = (newStatus: TaskStatus) => {
     if (!firestore || newStatus === currentStatus) return;
-    const docRef = doc(firestore, 'internal_tasks', documentId);
+    const docRef = doc(firestore, collectionPath, documentId);
     updateDocumentNonBlocking(docRef, { status: newStatus });
   };
 

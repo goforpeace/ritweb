@@ -37,17 +37,20 @@ const statusConfig: Record<
 interface TaskStatusBadgeProps {
   currentStatus: TaskStatus;
   documentId: string;
+  collectionPath?: string; // Optional path, defaults to 'tasks'
 }
 
 export function TaskStatusBadge({
   currentStatus,
   documentId,
+  collectionPath = 'tasks',
 }: TaskStatusBadgeProps) {
   const { firestore } = useFirebase();
 
   const handleStatusChange = (newStatus: TaskStatus) => {
     if (!firestore || newStatus === currentStatus) return;
-    const docRef = doc(firestore, 'tasks', documentId);
+    // Use the provided collection path (e.g. 'projects/123/tasks') or default to 'tasks'
+    const docRef = doc(firestore, collectionPath, documentId);
     updateDocumentNonBlocking(docRef, { status: newStatus });
   };
 

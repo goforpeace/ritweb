@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirebase, useUser, useMemoFirebase, useDoc, useCollection } from '@/firebase';
@@ -71,8 +70,7 @@ export default function ProjectTaskDetailPage({ params }: { params: { projectId:
             <TaskStatusBadge 
                 currentStatus={task.status || 'New'} 
                 documentId={task.id} 
-                // Note: TaskStatusBadge currently defaults to root tasks collection
-                // I will need to either update it or handle internal project task status here
+                collectionPath={`projects/${projectId}/tasks`}
             />
         </div>
       </div>
