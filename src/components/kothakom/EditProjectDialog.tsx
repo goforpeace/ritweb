@@ -113,8 +113,8 @@ export default function EditProjectDialog({ project }: { project: Project }) {
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto border-border">
         <DialogHeader>
-          <DialogTitle>Edit Project Details</DialogTitle>
-          <DialogDescription>Modify the project configuration and revenue settings.</DialogDescription>
+          <DialogTitle>Edit Project Profile</DialogTitle>
+          <DialogDescription>Modify core settings and log current project effort.</DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <Form {...form}>
@@ -143,8 +143,8 @@ export default function EditProjectDialog({ project }: { project: Project }) {
 
               <FormField control={form.control} name="description" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl><Textarea {...field} /></FormControl>
+                  <FormLabel>Description / Scope</FormLabel>
+                  <FormControl><Textarea {...field} className="min-h-[120px]" /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -176,7 +176,7 @@ export default function EditProjectDialog({ project }: { project: Project }) {
                 )} />
                  <FormField control={form.control} name="workHours" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Work Hours (Accumulated)</FormLabel>
+                    <FormLabel>Effort Logged (Total Hours)</FormLabel>
                     <FormControl><Input type="number" step="0.5" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -238,7 +238,7 @@ export default function EditProjectDialog({ project }: { project: Project }) {
               </div>
 
               <DialogFooter>
-                <Button type="submit" className="w-full">Save Changes</Button>
+                <Button type="submit" className="w-full" size="lg">Save Project Changes</Button>
               </DialogFooter>
             </form>
           </Form>
