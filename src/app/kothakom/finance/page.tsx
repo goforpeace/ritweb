@@ -6,7 +6,7 @@ import { collection, query, orderBy } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Banknote, PlusCircle, Search, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import { Banknote, PlusCircle, Search, TrendingUp, TrendingDown, Wallet, ImageIcon, X, Link as LinkIcon, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -33,22 +33,33 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Textarea } from '@/components/ui/textarea';
+import Image from 'next/image';
 
 type FinanceRecord = {
   id: string;
   description: string;
   amount: number;
   type: 'Income' | 'Expense';
-  status: 'Pending' | 'Completed' | 'Cancelled';
+  status: 'Paid' | 'Unpaid' | 'Cancelled';
   date: string;
+  projectId?: string;
+  imageUrl?: string;
+  createdBy?: string;
+};
+
+type Project = {
+    id: string;
+    name: string;
 };
 
 const financeSchema = z.object({
   description: z.string().min(2, "Description is required"),
   amount: z.coerce.number().positive("Amount must be positive"),
   type: z.enum(["Income", "Expense"]),
-  status: z.enum(["Pending", "Completed", "Cancelled"]),
+  status: z.enum(["Paid", "Unpaid", "Cancelled"]),
   date: z.string().min(1, "Date is required"),
+  projectId: z.string().optional(),
 });
 
 export default function FinancePage() {
@@ -57,11 +68,16 @@ export default function FinancePage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [pastedImage, setPastedImage] = useState<string | null>(null);
 
   const financeRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return collection(firestore, 'finance');
   }, [firestore, user]);
+
+  const projectsRef = useMemoFirebase(() => firestore ? collection(firestore, 'projects') : null, [firestore]);
+  const { data: projects } = useCollection<Project>(projectsRef);
+  const projectMap = useMemo(() => new Map(projects?.map(p => [p.id, p.name])), [projects]);
 
   const { data: records, isLoading } = useCollection<FinanceRecord>(useMemoFirebase(() => financeRef ? query(financeRef, orderBy('date', 'desc')) : null, [financeRef]));
 
@@ -71,29 +87,56 @@ export default function FinancePage() {
       description: '', 
       amount: 0, 
       type: 'Income', 
-      status: 'Completed', 
-      date: format(new Date(), "yyyy-MM-dd") 
+      status: 'Paid', 
+      date: format(new Date(), "yyyy-MM-dd"),
+      projectId: ''
     },
   });
 
   const stats = useMemo(() => {
     if (!records) return { income: 0, expenses: 0, balance: 0 };
-    const completed = records.filter(r => r.status === 'Completed');
-    const income = completed.filter(r => r.type === 'Income').reduce((sum, r) => sum + r.amount, 0);
-    const expenses = completed.filter(r => r.type === 'Expense').reduce((sum, r) => sum + r.amount, 0);
+    const valid = records.filter(r => r.status === 'Paid');
+    const income = valid.filter(r => r.type === 'Income').reduce((sum, r) => sum + r.amount, 0);
+    const expenses = valid.filter(r => r.type === 'Expense').reduce((sum, r) => sum + r.amount, 0);
     return { income, expenses, balance: income - expenses };
   }, [records]);
 
   const filteredRecords = useMemo(() => {
     if (!records) return [];
-    return records.filter(r => r.description.toLowerCase().includes(searchTerm.toLowerCase()));
-  }, [records, searchTerm]);
+    return records.filter(r => 
+        r.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (r.projectId && projectMap.get(r.projectId)?.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }, [records, searchTerm, projectMap]);
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const blob = items[i].getAsFile();
+        if (blob) {
+           const reader = new FileReader();
+           reader.onload = (event) => {
+             setPastedImage(event.target?.result as string);
+             toast({ title: "Screenshot attached", description: "Reference image added to transaction." });
+           };
+           reader.readAsDataURL(blob);
+        }
+      }
+    }
+  };
 
   async function onSubmit(values: z.infer<typeof financeSchema>) {
     if (!financeRef) return;
-    addDocumentNonBlocking(financeRef, values);
-    toast({ title: "Record Saved", description: `Transaction of $${values.amount} recorded.` });
+    addDocumentNonBlocking(financeRef, {
+        ...values,
+        imageUrl: pastedImage || null,
+        createdBy: user?.displayName || user?.email || 'System',
+        createdAt: new Date().toISOString()
+    });
+    toast({ title: "Transaction Recorded", description: `Record for Tk ${values.amount} saved.` });
     form.reset();
+    setPastedImage(null);
     setIsAddOpen(false);
   }
 
@@ -105,29 +148,70 @@ export default function FinancePage() {
           <p className="text-muted-foreground mt-1">Cashflow management and financial records.</p>
         </div>
 
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <Dialog open={isAddOpen} onOpenChange={(val) => { setIsAddOpen(val); if(!val) setPastedImage(null); }}>
           <DialogTrigger asChild>
-            <Button className="bg-green-600 hover:bg-green-700 text-white">
+            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
                 <PlusCircle className="mr-2 h-4 w-4" /> New Transaction
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Add Financial Record</DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                <FormField control={form.control} name="description" render={({ field }) => (
+                <FormField control={form.control} name="projectId" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl><Input placeholder="E.g., Client Payment: Acme Inc" {...field} /></FormControl>
+                    <FormLabel>Link Project (Optional)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select Project" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                            <SelectItem value="none">None / General</SelectItem>
+                            {projects?.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )} />
+
+                <FormField control={form.control} name="description" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Reference / Description</FormLabel>
+                    <FormControl>
+                        <div className="relative">
+                            <Textarea 
+                                placeholder="E.g., Client Milestone Payment. Paste screenshot (Ctrl+V) here..." 
+                                onPaste={handlePaste}
+                                {...field}
+                                className="min-h-[100px] text-xs"
+                            />
+                            <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground flex items-center gap-1 opacity-50">
+                                <ImageIcon className="h-3 w-3" />
+                                <span>Paste Screenshots Enabled</span>
+                            </div>
+                        </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                {pastedImage && (
+                    <div className="relative w-full h-32 border rounded-lg overflow-hidden group">
+                        <Image src={pastedImage} alt="Reference" fill className="object-contain bg-black/5" />
+                        <button 
+                            type="button" 
+                            onClick={() => setPastedImage(null)}
+                            className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-4">
                     <FormField control={form.control} name="amount" render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Amount ($)</FormLabel>
+                        <FormLabel>Amount (Tk)</FormLabel>
                         <FormControl><Input type="number" {...field} /></FormControl>
                         <FormMessage />
                     </FormItem>
@@ -143,7 +227,7 @@ export default function FinancePage() {
                 <div className="grid grid-cols-2 gap-4">
                     <FormField control={form.control} name="type" render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Type</FormLabel>
+                        <FormLabel>Transaction Type</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                             <SelectContent>
@@ -156,12 +240,12 @@ export default function FinancePage() {
                     )} />
                     <FormField control={form.control} name="status" render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Status</FormLabel>
+                        <FormLabel>Payment Status</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                             <SelectContent>
-                                <SelectItem value="Completed">Completed</SelectItem>
-                                <SelectItem value="Pending">Pending</SelectItem>
+                                <SelectItem value="Paid">Paid</SelectItem>
+                                <SelectItem value="Unpaid">Unpaid</SelectItem>
                                 <SelectItem value="Cancelled">Cancelled</SelectItem>
                             </SelectContent>
                         </Select>
@@ -170,7 +254,7 @@ export default function FinancePage() {
                     )} />
                 </div>
                 <DialogFooter>
-                  <Button type="submit" className="w-full">Record Entry</Button>
+                  <Button type="submit" className="w-full h-12 text-lg font-bold">Record Transaction</Button>
                 </DialogFooter>
               </form>
             </Form>
@@ -181,29 +265,32 @@ export default function FinancePage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="bg-emerald-500/5 border-emerald-500/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Income</CardTitle>
+                <CardTitle className="text-sm font-medium">Net Revenue</CardTitle>
                 <TrendingUp className="h-4 w-4 text-emerald-500" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold text-emerald-500">${stats.income.toLocaleString()}</div>
+                <div className="text-2xl font-black text-emerald-500">Tk {stats.income.toLocaleString()}</div>
+                <p className="text-[10px] text-muted-foreground mt-1 font-medium">TOTAL RECEIVED PAYMENTS</p>
             </CardContent>
         </Card>
         <Card className="bg-red-500/5 border-red-500/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+                <CardTitle className="text-sm font-medium">Business Expenses</CardTitle>
                 <TrendingDown className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold text-red-500">${stats.expenses.toLocaleString()}</div>
+                <div className="text-2xl font-black text-red-500">Tk {stats.expenses.toLocaleString()}</div>
+                <p className="text-[10px] text-muted-foreground mt-1 font-medium">TOTAL PAID EXPENDITURE</p>
             </CardContent>
         </Card>
         <Card className="bg-primary/5 border-primary/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Net Balance</CardTitle>
+                <CardTitle className="text-sm font-medium">Net Cashflow</CardTitle>
                 <Wallet className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold text-primary">${stats.balance.toLocaleString()}</div>
+                <div className="text-2xl font-black text-primary">Tk {stats.balance.toLocaleString()}</div>
+                <p className="text-[10px] text-muted-foreground mt-1 font-medium">TOTAL OPERATING BALANCE</p>
             </CardContent>
         </Card>
       </div>
@@ -211,8 +298,8 @@ export default function FinancePage() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
-          placeholder="Search records..." 
-          className="pl-9"
+          placeholder="Search records by description or project..." 
+          className="pl-9 h-11"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -225,7 +312,7 @@ export default function FinancePage() {
           ) : filteredRecords.length === 0 ? (
             <div className="py-20 text-center border-2 border-dashed rounded-lg">
               <Banknote className="mx-auto h-8 w-8 text-muted-foreground mb-4 opacity-50" />
-              <p className="text-muted-foreground">No financial records found.</p>
+              <p className="text-muted-foreground">No financial records matching your search.</p>
             </div>
           ) : (
             <div className="rounded-md border overflow-hidden">
@@ -233,7 +320,8 @@ export default function FinancePage() {
                 <TableHeader className="bg-muted/50">
                   <TableRow>
                     <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
+                    <TableHead>Reference & Project</TableHead>
+                    <TableHead>Created By</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
@@ -241,30 +329,51 @@ export default function FinancePage() {
                 </TableHeader>
                 <TableBody>
                   {filteredRecords.map((record) => (
-                    <TableRow key={record.id}>
-                      <TableCell className="text-xs">{record.date}</TableCell>
-                      <TableCell className="font-medium text-xs">{record.description}</TableCell>
+                    <TableRow key={record.id} className="group">
+                      <TableCell className="text-xs whitespace-nowrap">{record.date}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-0.5">
+                            <span className="font-bold text-sm flex items-center gap-1.5">
+                                {record.description}
+                                {record.imageUrl && <ImageIcon className="h-3 w-3 text-primary animate-pulse" />}
+                            </span>
+                            {record.projectId && (
+                                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                    <LinkIcon className="h-2.5 w-2.5" />
+                                    {projectMap.get(record.projectId) || 'Linked Project'}
+                                </span>
+                            )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                         <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                            <User className="h-3 w-3" />
+                            {record.createdBy || 'Unknown'}
+                         </div>
+                      </TableCell>
                       <TableCell>
                         <Badge variant="secondary" className={cn(
-                            "text-[10px]",
+                            "text-[10px] font-bold h-5 px-1.5",
                             record.type === 'Income' ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600"
                         )}>
-                            {record.type}
+                            {record.type === 'Income' ? 'REV' : 'EXP'}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <span className={cn(
-                            "text-[10px] font-medium",
-                            record.status === 'Completed' ? "text-emerald-500" : "text-yellow-500"
+                        <Badge variant="outline" className={cn(
+                            "text-[10px] font-medium h-5 px-1.5",
+                            record.status === 'Paid' ? "border-emerald-500/50 text-emerald-500" : 
+                            record.status === 'Unpaid' ? "border-orange-500/50 text-orange-500" :
+                            "border-muted text-muted-foreground"
                         )}>
                             {record.status}
-                        </span>
+                        </Badge>
                       </TableCell>
                       <TableCell className={cn(
-                          "text-right font-mono font-bold",
+                          "text-right font-mono font-bold text-sm",
                           record.type === 'Income' ? "text-emerald-500" : "text-red-500"
                       )}>
-                        {record.type === 'Income' ? '+' : '-'}${record.amount.toLocaleString()}
+                        {record.type === 'Income' ? '+' : '-'}Tk {record.amount.toLocaleString()}
                       </TableCell>
                     </TableRow>
                   ))}

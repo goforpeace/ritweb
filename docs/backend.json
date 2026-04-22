@@ -135,9 +135,11 @@
         "description": { "type": "string" },
         "amount": { "type": "number" },
         "type": { "type": "string", "enum": ["Income", "Expense"] },
-        "status": { "type": "string", "enum": ["Pending", "Completed", "Cancelled"] },
+        "status": { "type": "string", "enum": ["Paid", "Unpaid", "Cancelled"] },
         "date": { "type": "string", "format": "date" },
-        "projectId": { "type": "string" }
+        "projectId": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "createdBy": { "type": "string" }
       },
       "required": ["id", "description", "amount", "type", "status", "date"]
     }
