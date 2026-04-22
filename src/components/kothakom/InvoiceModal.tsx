@@ -52,7 +52,7 @@ interface InvoiceModalProps {
   trigger?: React.ReactNode;
 }
 
-const DARK_NAVY = "text-[#000033]"; // Custom Dark Navy Blue
+const DARK_NAVY = "text-[#000033]"; // Professional Dark Navy Blue
 
 export default function InvoiceModal({ record, project, trigger }: InvoiceModalProps) {
   const { firestore } = useFirebase();
@@ -80,7 +80,10 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
   }, [record.id, record.date]);
 
   const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = invoiceNumber; // Hint for browser's print-to-pdf filename
     window.print();
+    document.title = originalTitle;
   };
 
   return (
@@ -184,9 +187,9 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
                     <table className="w-full">
                         <thead>
                             <tr className="bg-primary text-slate-950">
-                                <th className="py-4 px-6 text-left text-[10px] font-black uppercase tracking-[0.2em]">Service Description</th>
-                                <th className="py-4 px-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">Project</th>
-                                <th className="py-4 px-6 text-right text-[10px] font-black uppercase tracking-[0.2em]">Total Amount</th>
+                                <th className="py-4 px-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-950">Service Description</th>
+                                <th className="py-4 px-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-950">Project</th>
+                                <th className="py-4 px-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-950">Total Amount</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -237,8 +240,8 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
                         </div>
                         <div className="h-px bg-slate-100 my-2" />
                         <div className="flex justify-between items-center bg-primary p-4 rounded-xl text-slate-950 shadow-lg shadow-primary/20">
-                            <span className="text-xs font-black uppercase tracking-widest">Total Amount</span>
-                            <span className="text-2xl font-black tabular-nums">৳ {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                            <span className="text-xs font-black uppercase tracking-widest text-slate-950">Total Amount</span>
+                            <span className="text-2xl font-black tabular-nums text-slate-950">৳ {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                         </div>
                     </div>
                 </div>
@@ -263,12 +266,23 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
 
             {/* Bottom Accent */}
             <div className="h-1.5 bg-primary w-full mt-auto" />
+            
+            {/* Optimized Printing Styles */}
+            <style jsx global>{`
+              @media print {
+                @page { margin: 0; size: A4; }
+                body { background: white !important; -webkit-print-color-adjust: exact; }
+                header, footer, nav, button, .print\\:hidden { display: none !important; }
+                .dialog-overlay, .dialog-content { background: white !important; box-shadow: none !important; border: none !important; position: static !important; width: 100% !important; max-width: none !important; padding: 0 !important; margin: 0 !important; }
+                #invoice-content { width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; min-height: 100vh; }
+              }
+            `}</style>
         </div>
 
         <div className="flex justify-center gap-4 print:hidden py-8 bg-slate-100">
             <Button variant="outline" size="lg" onClick={handlePrint} className="bg-white border-slate-200 hover:bg-slate-50 shadow-sm px-8">
                 <Printer className="mr-2 h-4 w-4" />
-                Print Invoice
+                Print Preview
             </Button>
             <Button size="lg" onClick={handlePrint} className="bg-primary hover:brightness-110 shadow-lg shadow-primary/20 px-8 font-bold text-slate-950">
                 <Download className="mr-2 h-4 w-4" />

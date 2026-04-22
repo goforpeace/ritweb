@@ -5,7 +5,7 @@ import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Banknote, PlusCircle, Search, TrendingUp, TrendingDown, Wallet, ImageIcon, X, Link as LinkIcon, User, Info, FileText, Pencil, Trash2, RotateCcw, AlertTriangle, Eye, MoreHorizontal, FileDown } from 'lucide-react';
+import { Banknote, PlusCircle, Search, TrendingUp, TrendingDown, Wallet, ImageIcon, X, Link as LinkIcon, User, FileText, Pencil, Trash2, RotateCcw, AlertTriangle, Eye, MoreHorizontal, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -44,11 +44,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import InvoiceSettingsDialog from '@/components/kothakom/InvoiceSettingsDialog';
 import InvoiceModal from '@/components/kothakom/InvoiceModal';
-import { Separator } from '@/components/ui/separator';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -454,7 +452,7 @@ export default function FinancePage() {
                   {filteredRecords.map((record) => (
                     <TableRow key={record.id} className="group">
                       <TableCell className="text-[10px] font-mono font-bold text-muted-foreground">
-                        #TXN-{record.id.slice(-4).toUpperCase()}
+                        #TXN-{record.id.slice(-6).toUpperCase()}
                       </TableCell>
                       <TableCell className="text-xs whitespace-nowrap">{record.date}</TableCell>
                       <TableCell>
@@ -529,7 +527,7 @@ export default function FinancePage() {
                                                 project={projects?.find(p => p.id === record.projectId)} 
                                                 trigger={
                                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                        <FileDown className="mr-2 h-4 w-4" /> Generate Invoice
+                                                        <FileDown className="mr-2 h-4 w-4" /> Create Invoice
                                                     </DropdownMenuItem>
                                                 }
                                             />
@@ -541,23 +539,12 @@ export default function FinancePage() {
                                         
                                         <DropdownMenuSeparator />
                                         
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                                                    <Trash2 className="mr-2 h-4 w-4" /> Delete Record
-                                                </DropdownMenuItem>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Move to Trash?</AlertDialogTitle>
-                                                    <AlertDialogDescription>This transaction will be excluded from all financial calculations.</AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => toggleDelete(record.id, true)} className="bg-destructive text-destructive-foreground">Delete</AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
+                                        <DropdownMenuItem 
+                                            onSelect={() => toggleDelete(record.id, true)} 
+                                            className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                                        >
+                                            <Trash2 className="mr-2 h-4 w-4" /> Delete Record
+                                        </DropdownMenuItem>
                                     </>
                                 ) : (
                                     <DropdownMenuItem onClick={() => toggleDelete(record.id, false)}>
@@ -576,7 +563,6 @@ export default function FinancePage() {
         </CardContent>
       </Card>
 
-      {/* View Record Detail Modal */}
       <Dialog open={!!viewingRecord} onOpenChange={(val) => !val && setViewingRecord(null)}>
         <DialogContent className="max-w-2xl">
             <DialogHeader>
@@ -589,7 +575,7 @@ export default function FinancePage() {
                         <div>
                             <h3 className="text-xl font-bold">{viewingRecord.title}</h3>
                             <p className="text-sm text-muted-foreground">{viewingRecord.date} • Created by {viewingRecord.createdBy}</p>
-                            <p className="text-[10px] font-mono mt-1 text-primary">TID: #TXN-{viewingRecord.id.slice(-4).toUpperCase()}</p>
+                            <p className="text-[10px] font-mono mt-1 text-primary">TID: #TXN-{viewingRecord.id.slice(-6).toUpperCase()}</p>
                         </div>
                         <div className="text-right">
                              <div className={cn(
