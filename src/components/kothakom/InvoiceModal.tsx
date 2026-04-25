@@ -193,28 +193,34 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
     setIsSaving(true);
     
     try {
-      // Use higher scale for crystal clear output (3x is optimal)
-      // PNG format ensures text and logo stay sharp without smudging
+      // Use ultra-high scale for crystal clear output (4x is professional grade)
+      // PNG format is lossless, ensuring perfect text and logo rendering without blurry artifacts
       const canvas = await html2canvas(viewRef.current, { 
-        scale: 3, 
+        scale: 4, 
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
         scrollX: 0,
         scrollY: 0,
         windowWidth: viewRef.current.scrollWidth,
-        windowHeight: viewRef.current.scrollHeight
+        windowHeight: viewRef.current.scrollHeight,
+        imageTimeout: 0, // No timeout for images to ensure logo loads
       });
       
-      // PNG is lossless, ensuring perfect text and logo rendering
       const imgData = canvas.toDataURL('image/png');
       
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4',
+        compress: false // Prioritize quality over file size
+      });
+
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      // Use PNG for high-fidelity vector-like output
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+      // Use PNG for maximum fidelity
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`${invoiceNumber}.pdf`);
     } catch (error) {
       console.error('Failed to generate PDF:', error);
