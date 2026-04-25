@@ -55,7 +55,7 @@ interface InvoiceModalProps {
   trigger?: React.ReactNode;
 }
 
-const DARK_NAVY = "text-[#000033]"; // Professional Dark Navy Blue
+const DARK_NAVY = "text-[#000033]"; 
 
 export default function InvoiceModal({ record, project, trigger }: InvoiceModalProps) {
   const { firestore } = useFirebase();
@@ -91,9 +91,6 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
     
     if (printWindow) {
       printWindow.document.write('<html><head><title>' + invoiceNumber + '</title>');
-      
-      // Inject comprehensive CSS to format the print window correctly for A4
-      // We replicate key tailwind styles to ensure the document looks exact
       printWindow.document.write(`<style>
         @media print { 
             @page { size: A4; margin: 0; } 
@@ -147,6 +144,7 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
         .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
         .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
         .text-xs { font-size: 0.75rem; line-height: 1rem; }
+        .text-2xl { font-size: 1.5rem; }
         .text-\\[11px\\] { font-size: 11px; }
         .text-\\[12px\\] { font-size: 12px; }
         .text-\\[10px\\] { font-size: 10px; }
@@ -176,7 +174,6 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
       printWindow.document.close();
       printWindow.focus();
       
-      // Slight timeout ensures styles and images load before printing
       setTimeout(() => {
         printWindow.print();
         printWindow.close();
@@ -196,7 +193,6 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
         logging: false
       });
       
-      // Use JPEG with quality setting to reduce file size while maintaining quality
       const imgData = canvas.toDataURL('image/jpeg', 0.8);
       
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -229,14 +225,13 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
           </DialogTitle>
         </DialogHeader>
         
-        {/* Document Viewer Area */}
         <div className="flex-1 overflow-y-auto p-8">
             <div 
                 ref={viewRef}
                 id="invoice-content" 
-                className="mx-auto w-[210mm] min-h-[297mm] bg-white text-slate-900 shadow-2xl flex flex-col relative overflow-hidden font-sans invoice-print-container"
+                className="mx-auto w-[210mm] min-h-[297mm] bg-white text-slate-900 flex flex-col relative overflow-hidden font-sans invoice-print-container"
             >
-                {/* Top Accent */}
+                {/* Top Accent Bar */}
                 <div className="absolute top-0 left-0 w-full h-2 bg-primary z-20" />
 
                 {/* Header Section */}
@@ -244,7 +239,7 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
                     <div className="space-y-6">
                         {settings?.logoUrl ? (
                             <div className="relative h-32 w-80">
-                                <Image src={settings.logoUrl} alt="Company Logo" fill className="object-contain object-left" data-ai-hint="company logo" unoptimized />
+                                <Image src={settings.logoUrl} alt="Company Logo" fill className="object-contain object-left" unoptimized />
                             </div>
                         ) : (
                             <div className="space-y-1">
@@ -263,14 +258,14 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
                     </div>
                 </div>
 
-                {/* Meta Info Grid */}
+                {/* Information Grid */}
                 <div className="px-12 grid grid-cols-2 gap-12 mb-12 relative z-10">
                     <div className="space-y-6">
                         <div>
-                            <h4 className="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-3 flex items-center gap-1.5">
+                            <h4 className="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-2 flex items-center gap-1.5">
                                 <Building className="h-3 w-3" /> From
                             </h4>
-                            <div className="text-[12px] leading-relaxed font-medium text-slate-600 space-y-1">
+                            <div className="text-[12px] leading-relaxed text-slate-600 space-y-0.5">
                                 <p className="font-black text-slate-900 text-sm">{settings?.companyName || 'Remotized IT'}</p>
                                 <p className="whitespace-pre-wrap max-w-xs">{settings?.address || 'Your Business Address'}</p>
                                 <p className="text-primary font-bold">{settings?.email || 'billing@company.com'}</p>
@@ -278,12 +273,12 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
                             </div>
                         </div>
                         <div>
-                            <h4 className="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-3 flex items-center gap-1.5">
+                            <h4 className="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-2 flex items-center gap-1.5">
                                 <User className="h-3 w-3" /> Bill To
                             </h4>
-                            <div className="text-[12px] leading-relaxed font-medium text-slate-600 space-y-1">
+                            <div className="text-[12px] leading-relaxed text-slate-600 space-y-0.5">
                                 <p className="font-black text-slate-900 text-sm">{client?.name || 'Valued Client'}</p>
-                                <p className="font-bold text-primary/80">{client?.company || 'Organization'}</p>
+                                <p className="font-bold text-primary">{client?.company || 'Organization'}</p>
                                 <p className="max-w-xs">{client?.address || ''} {client?.country || ''}</p>
                             </div>
                         </div>
@@ -292,21 +287,21 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
                     <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 flex flex-col justify-center gap-4">
                         <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                             <div className="flex items-center gap-2 text-slate-400">
-                               <Hash className="h-4 w-4" />
+                               <Hash className="h-3 w-3" />
                                <span className="text-[10px] font-black uppercase tracking-widest">Invoice Number</span>
                             </div>
                             <span className={cn("text-sm font-black", DARK_NAVY)}>{invoiceNumber}</span>
                         </div>
                         <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                             <div className="flex items-center gap-2 text-slate-400">
-                               <Calendar className="h-4 w-4" />
+                               <Calendar className="h-3 w-3" />
                                <span className="text-[10px] font-black uppercase tracking-widest">Issue Date</span>
                             </div>
                             <span className="text-sm font-bold text-slate-900">{format(new Date(record.date), "PPP")}</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2 text-slate-400">
-                               <Calendar className="h-4 w-4" />
+                               <Calendar className="h-3 w-3" />
                                <span className="text-[10px] font-black uppercase tracking-widest">Due Date</span>
                             </div>
                             <span className={cn("text-sm font-black", DARK_NAVY)}>{format(addDays(new Date(record.date), 10), "PPP")}</span>
@@ -314,34 +309,37 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
                     </div>
                 </div>
 
-                {/* Table Section */}
+                {/* Description Table */}
                 <div className="flex-1 px-12 relative z-10">
                     <div className="rounded-xl border border-slate-200 overflow-hidden">
                         <table className="w-full">
                             <thead>
                                 <tr className="bg-primary text-slate-950">
-                                    <th className="py-4 px-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-950">Service Description</th>
-                                    <th className="py-4 px-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-950">Project</th>
-                                    <th className="py-4 px-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-950">Total Amount</th>
+                                    <th className="py-4 px-6 text-left text-[10px] font-black uppercase tracking-[0.2em]">Service Description</th>
+                                    <th className="py-4 px-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">Project</th>
+                                    <th className="py-4 px-6 text-right text-[10px] font-black uppercase tracking-[0.2em]">Total Amount</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                <tr className="hover:bg-slate-50 transition-colors">
+                                <tr>
                                     <td className="py-10 px-6 align-top">
-                                        <p className="text-lg font-black text-slate-900 mb-2">{record.title}</p>
-                                        <p className="text-xs text-slate-500 leading-relaxed italic max-w-sm">
+                                        <p className="text-lg font-black text-slate-900 mb-1">{record.title}</p>
+                                        <p className="text-xs text-slate-400 italic">
                                             Professional IT services and deliverables as per agreed terms.
                                         </p>
                                     </td>
                                     <td className="py-10 px-6 text-center align-top">
-                                        <span className={cn("inline-block px-4 py-1.5 rounded-full bg-slate-100 text-[11px] font-black uppercase tracking-wider", DARK_NAVY)}>
+                                        <span className={cn("inline-block px-4 py-1.5 rounded-full bg-slate-100 text-[10px] font-black uppercase tracking-wider", DARK_NAVY)}>
                                             {project?.name || 'Standard Service'}
                                         </span>
                                     </td>
                                     <td className="py-10 px-6 text-right align-top">
-                                        <span className="text-2xl font-black text-slate-900 tabular-nums">
-                                            ৳ {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                        </span>
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-xs font-bold text-slate-900">৳</span>
+                                            <span className="text-3xl font-black text-slate-900 tabular-nums">
+                                                {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            </span>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -349,30 +347,30 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
                     </div>
                 </div>
 
-                {/* Calculations & Footer Payment Info */}
+                {/* Footer Section */}
                 <div className="p-12 pt-8 space-y-12 relative z-10 mt-auto">
                     <div className="flex justify-between items-start">
-                        <div className="space-y-4 max-w-sm">
+                        <div className="space-y-3 max-w-sm">
                             <div className="flex items-center gap-2 text-primary">
                                 <CreditCard className="h-4 w-4" />
                                 <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">Payment Information</h4>
                             </div>
-                            <div className="text-[11px] leading-relaxed text-slate-600 bg-slate-50 p-6 rounded-xl border border-slate-100 whitespace-pre-wrap font-medium">
-                                {settings?.paymentDetails || 'Please refer to our standard terms.'}
+                            <div className="text-[11px] text-slate-600 bg-slate-50 p-6 rounded-xl border border-slate-100 whitespace-pre-wrap font-medium">
+                                {settings?.paymentDetails || 'Refer to standard billing terms.'}
                             </div>
                         </div>
 
-                        <div className="w-72 space-y-3">
+                        <div className="w-72 space-y-2">
                             <div className="flex justify-between items-center text-slate-500">
-                                <span className="text-[10px] font-black uppercase tracking-widest">Subtotal</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest">Subtotal</span>
                                 <span className="text-sm font-bold">৳ {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between items-center text-slate-500">
-                                <span className="text-[10px] font-black uppercase tracking-widest">Tax (0%)</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest">Tax (0%)</span>
                                 <span className="text-sm font-bold">৳ 0.00</span>
                             </div>
                             <div className="h-px bg-slate-100 my-2" />
-                            <div className="flex justify-between items-center bg-primary p-4 rounded-xl text-slate-950 shadow-lg shadow-primary/20">
+                            <div className="flex justify-between items-center bg-primary p-4 rounded-xl text-slate-950 shadow-lg shadow-primary/10">
                                 <span className="text-xs font-black uppercase tracking-widest">Total Amount</span>
                                 <span className="text-2xl font-black tabular-nums">৳ {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
@@ -382,12 +380,12 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
                     <div className="pt-8 border-t border-slate-100 flex justify-between items-end">
                         <div className="space-y-1">
                             <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Thank you for your business!</p>
-                            <p className="text-[9px] text-slate-400">Generated on {format(new Date(), "PPpp")}</p>
+                            <p className="text-[8px] text-slate-400">Generated {format(new Date(), "PPpp")}</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">Processed By</p>
+                            <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mb-1">Processed By</p>
                             <div className="flex items-center gap-3 justify-end">
-                                <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-primary font-black text-[10px]">
+                                <div className="h-7 w-7 rounded-full bg-slate-100 flex items-center justify-center text-primary font-black text-[9px]">
                                     {processedByName.charAt(0).toUpperCase()}
                                 </div>
                                 <p className="text-sm font-black text-slate-900">{processedByName}</p>
@@ -412,7 +410,7 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
                 className="bg-primary hover:brightness-110 shadow-lg shadow-primary/20 px-8 font-bold text-slate-950 min-w-[200px]"
             >
                 {isSaving ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating PDF...</>
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Rendering PDF...</>
                 ) : (
                     <><Download className="mr-2 h-4 w-4" /> Save as PDF</>
                 )}
