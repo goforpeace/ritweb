@@ -63,7 +63,6 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
   const viewRef = useRef<HTMLDivElement>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Failsafe cleanup to ensure body pointer events are restored
   useEffect(() => {
     return () => {
       document.body.style.pointerEvents = "";
@@ -194,20 +193,28 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
     setIsSaving(true);
     
     try {
+      // Use higher scale for crystal clear output (3x is optimal)
+      // PNG format ensures text and logo stay sharp without smudging
       const canvas = await html2canvas(viewRef.current, { 
-        scale: 2, 
+        scale: 3, 
         useCORS: true,
         backgroundColor: '#ffffff',
-        logging: false
+        logging: false,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: viewRef.current.scrollWidth,
+        windowHeight: viewRef.current.scrollHeight
       });
       
-      const imgData = canvas.toDataURL('image/jpeg', 0.8);
+      // PNG is lossless, ensuring perfect text and logo rendering
+      const imgData = canvas.toDataURL('image/png');
       
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      // Use PNG for high-fidelity vector-like output
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
       pdf.save(`${invoiceNumber}.pdf`);
     } catch (error) {
       console.error('Failed to generate PDF:', error);
@@ -270,8 +277,8 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                             </h4>
                             <div className="text-[12px] leading-relaxed text-slate-600 space-y-0.5">
                                 <p className="font-black text-slate-900 text-sm">{settings?.companyName || 'Remotized IT'}</p>
-                                <p className="whitespace-pre-wrap max-w-xs">{settings?.address || 'Office Address'}</p>
-                                <p className="text-primary font-bold">{settings?.email || 'billing@company.com'}</p>
+                                <p className="whitespace-pre-wrap max-w-xs">{settings?.address || ''}</p>
+                                <p className="text-primary font-bold">{settings?.email || ''}</p>
                                 <p>{settings?.phone || ''}</p>
                             </div>
                         </div>
@@ -281,8 +288,8 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                             </h4>
                             <div className="text-[12px] leading-relaxed text-slate-600 space-y-0.5">
                                 <p className="font-black text-slate-900 text-sm">{client?.name || 'Valued Client'}</p>
-                                <p className="font-bold text-primary">{client?.company || 'Organization'}</p>
-                                <p className="max-w-xs">{client?.address || ''} {client?.country || ''}</p>
+                                <p className="font-bold text-primary">{client?.company || ''}</p>
+                                <p className="max-w-xs">{client?.country || ''}</p>
                             </div>
                         </div>
                     </div>
