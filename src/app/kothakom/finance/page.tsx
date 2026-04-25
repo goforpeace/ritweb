@@ -251,7 +251,7 @@ export default function FinancePage() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
                     <FormField control={form.control} name="projectId" render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Link Project (Optional)</FormLabel>
+                        <FormLabel>Link Project</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value || 'none'}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select Project" /></SelectTrigger></FormControl>
                             <SelectContent>
@@ -266,7 +266,7 @@ export default function FinancePage() {
                     <FormField control={form.control} name="title" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Title</FormLabel>
-                        <FormControl><Input placeholder="" {...field} /></FormControl>
+                        <FormControl><Input {...field} /></FormControl>
                         <FormMessage />
                     </FormItem>
                     )} />
@@ -277,7 +277,6 @@ export default function FinancePage() {
                         <FormControl>
                             <div className="relative">
                                 <Textarea 
-                                    placeholder="" 
                                     onPaste={handlePaste}
                                     {...field}
                                     className="min-h-[100px] text-xs"
@@ -410,7 +409,7 @@ export default function FinancePage() {
             <div className="flex items-center gap-2">
                 {showDeleted && <AlertTriangle className="h-4 w-4 text-destructive" />}
                 <CardTitle className="text-lg">
-                    {showDeleted ? "Finance Trash (Excluded from Stats)" : "Transaction Ledger"}
+                    {showDeleted ? "Finance Trash" : "Transaction Ledger"}
                 </CardTitle>
             </div>
             {showDeleted && <CardDescription>Records in trash are not calculated in your business balance.</CardDescription>}
@@ -507,7 +506,7 @@ export default function FinancePage() {
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 {!showDeleted ? (
                                     <>
-                                        <DropdownMenuItem onClick={() => setViewingRecord(record)}>
+                                        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setViewingRecord(record); }}>
                                             <Eye className="mr-2 h-4 w-4" /> View Details
                                         </DropdownMenuItem>
                                         
@@ -523,7 +522,7 @@ export default function FinancePage() {
                                             />
                                         )}
 
-                                        <DropdownMenuItem onClick={() => { setEditingRecord(record); setIsAddOpen(true); }}>
+                                        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setEditingRecord(record); setIsAddOpen(true); }}>
                                             <Pencil className="mr-2 h-4 w-4" /> Edit Record
                                         </DropdownMenuItem>
                                         
@@ -537,7 +536,7 @@ export default function FinancePage() {
                                         </DropdownMenuItem>
                                     </>
                                 ) : (
-                                    <DropdownMenuItem onClick={() => toggleDelete(record.id, false)}>
+                                    <DropdownMenuItem onSelect={() => toggleDelete(record.id, false)}>
                                         <RotateCcw className="mr-2 h-4 w-4" /> Restore Record
                                     </DropdownMenuItem>
                                 )}

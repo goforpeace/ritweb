@@ -95,7 +95,7 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
             </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-5xl max-h-[95dvh] overflow-y-auto print:p-0 print:m-0 print:max-w-full print:bg-white bg-slate-100 p-0 border-none">
+      <DialogContent className="max-w-5xl max-h-[95dvh] overflow-y-auto print:p-0 print:m-0 print:max-w-full print:bg-white bg-slate-100 p-0 border-none scrollbar-hide">
         <DialogHeader className="print:hidden p-6 bg-background border-b">
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
@@ -103,7 +103,7 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
           </DialogTitle>
         </DialogHeader>
         
-        <div id="invoice-content" className="mx-auto my-8 print:my-0 w-full max-w-[210mm] bg-white text-slate-900 shadow-2xl print:shadow-none min-h-[297mm] flex flex-col relative overflow-hidden font-sans">
+        <div id="invoice-content" className="mx-auto my-8 print:my-0 w-full max-w-[210mm] bg-white text-slate-900 shadow-2xl print:shadow-none min-h-[297mm] flex flex-col relative overflow-hidden font-sans invoice-print-container">
             {/* Design Accents */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 print:hidden" />
             <div className="absolute top-0 left-0 w-full h-2 bg-primary" />
@@ -112,7 +112,7 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
             <div className="p-12 pb-8 flex justify-between items-start z-10">
                 <div className="space-y-6">
                     {settings?.logoUrl ? (
-                        <div className="relative h-32 w-80">
+                        <div className="relative h-40 w-80">
                             <Image src={settings.logoUrl} alt="Logo" fill className="object-contain object-left" />
                         </div>
                     ) : (
@@ -224,7 +224,7 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
                             <CreditCard className="h-4 w-4" />
                             <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">Payment Information</h4>
                         </div>
-                        <div className="text-[11px] leading-relaxed text-slate-500 bg-slate-50 p-6 rounded-xl border border-slate-100 whitespace-pre-wrap font-medium">
+                        <div className="text-[11px] leading-relaxed text-slate-600 bg-slate-50 p-6 rounded-xl border border-slate-100 whitespace-pre-wrap font-medium">
                             {settings?.paymentDetails || 'Please refer to our standard terms or contact our finance department for payment details.'}
                         </div>
                     </div>
@@ -271,10 +271,12 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
             <style jsx global>{`
               @media print {
                 @page { margin: 0; size: A4; }
-                body { background: white !important; -webkit-print-color-adjust: exact; }
+                body { background: white !important; -webkit-print-color-adjust: exact; overflow: hidden !important; }
                 header, footer, nav, button, .print\\:hidden { display: none !important; }
-                .dialog-overlay, .dialog-content { background: white !important; box-shadow: none !important; border: none !important; position: static !important; width: 100% !important; max-width: none !important; padding: 0 !important; margin: 0 !important; }
-                #invoice-content { width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; min-height: 100vh; }
+                .dialog-overlay, .dialog-content { background: white !important; box-shadow: none !important; border: none !important; position: static !important; width: 100% !important; max-width: none !important; padding: 0 !important; margin: 0 !important; overflow: hidden !important; }
+                #invoice-content { width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; min-height: 297mm; height: 297mm; }
+                .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+                .scrollbar-hide::-webkit-scrollbar { display: none; }
               }
             `}</style>
         </div>

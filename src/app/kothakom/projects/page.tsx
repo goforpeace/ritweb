@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirebase, useUser, useMemoFirebase, useCollection, addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
@@ -6,7 +5,7 @@ import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Briefcase, PlusCircle, Search, Trash2, Eye, User, Users as UsersIcon } from 'lucide-react';
+import { Briefcase, PlusCircle, Search, Trash2, Eye, User, Users as UsersIcon, MoreHorizontal, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +31,8 @@ import {
 } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/link';
+import Link from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import UserSelect from '@/components/kothakom/UserSelect';
 import {
   AlertDialog,
@@ -45,6 +45,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type Project = {
   id: string;
@@ -90,6 +98,7 @@ export default function ProjectsPage() {
   const { firestore } = useFirebase();
   const { user } = useUser();
   const { toast } = useToast();
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
 
@@ -176,7 +185,7 @@ export default function ProjectsPage() {
                   <FormField control={form.control} name="name" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Project Title</FormLabel>
-                      <FormControl><Input placeholder="E.g., ERP System Implementation" {...field} /></FormControl>
+                      <FormControl><Input {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
@@ -197,7 +206,7 @@ export default function ProjectsPage() {
                 <FormField control={form.control} name="description" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description / Scope</FormLabel>
-                    <FormControl><Input placeholder="Brief project summary..." {...field} /></FormControl>
+                    <FormControl><Input {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -316,6 +325,7 @@ export default function ProjectsPage() {
               <Table>
                 <TableHeader className="bg-muted/50">
                   <TableRow>
+                    <TableHead className="w-[100px]">Ref</TableHead>
                     <TableHead>Project Title</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
@@ -327,6 +337,9 @@ export default function ProjectsPage() {
                 <TableBody>
                   {filteredProjects.map((project) => (
                     <TableRow key={project.id} className="group">
+                      <TableCell className="text-[10px] font-mono font-bold text-muted-foreground">
+                        #PRJ-{project.id.slice(-4).toUpperCase()}
+                      </TableCell>
                       <TableCell className="font-bold">{project.name}</TableCell>
                       <TableCell>
                          <Badge variant="secondary" className="text-[10px] font-medium">
@@ -350,30 +363,38 @@ export default function ProjectsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button asChild variant="ghost" size="icon">
-                            <Link href={`/kothakom/projects/${project.id}`}>
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="text-destructive">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Project?</AlertDialogTitle>
-                                <AlertDialogDescription>This will permanently remove this project profile.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(project.id)} className="bg-destructive text-destructive-foreground">Delete</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem onSelect={() => router.push(`/kothakom/projects/${project.id}`)}>
+                                    <Eye className="mr-2 h-4 w-4" /> View Portal
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                                            <Trash2 className="mr-2 h-4 w-4" /> Delete Project
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Delete Project?</AlertDialogTitle>
+                                            <AlertDialogDescription>This will permanently remove this project profile.</AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDelete(project.id)} className="bg-destructive text-destructive-foreground">Delete</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
