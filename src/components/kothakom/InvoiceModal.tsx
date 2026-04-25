@@ -85,10 +85,103 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
   }, [record.id, record.date]);
 
   const handlePrint = () => {
-    const originalTitle = document.title;
-    document.title = invoiceNumber; 
-    window.print();
-    document.title = originalTitle;
+    if (!viewRef.current) return;
+    const printContent = viewRef.current.innerHTML;
+    const printWindow = window.open('', '_blank', 'height=800,width=800');
+    
+    if (printWindow) {
+      printWindow.document.write('<html><head><title>' + invoiceNumber + '</title>');
+      
+      // Inject comprehensive CSS to format the print window correctly for A4
+      // We replicate key tailwind styles to ensure the document looks exact
+      printWindow.document.write(`<style>
+        @media print { 
+            @page { size: A4; margin: 0; } 
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; }
+        } 
+        body { font-family: sans-serif; background: white; color: #0f172a; margin: 0; padding: 0; }
+        .invoice-print-container { width: 210mm; min-height: 297mm; margin: 0 auto; background: white; position: relative; }
+        .bg-primary { background-color: #00FFFF !important; }
+        .text-primary { color: #00FFFF !important; }
+        .text-\\[\\#000033\\] { color: #000033 !important; }
+        .bg-slate-50 { background-color: #f8fafc !important; }
+        .bg-slate-100 { background-color: #f1f5f9 !important; }
+        .border-slate-100 { border-color: #f1f5f9 !important; }
+        .border-slate-200 { border-color: #e2e8f0 !important; }
+        .text-slate-900 { color: #0f172a !important; }
+        .text-slate-600 { color: #475569 !important; }
+        .text-slate-500 { color: #64748b !important; }
+        .text-slate-400 { color: #94a3b8 !important; }
+        .flex { display: flex; }
+        .flex-col { display: flex; flex-direction: column; }
+        .justify-between { justify-content: space-between; }
+        .items-start { align-items: flex-start; }
+        .items-end { align-items: flex-end; }
+        .items-center { align-items: center; }
+        .grid { display: grid; }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .gap-12 { gap: 3rem; }
+        .gap-6 { gap: 1.5rem; }
+        .gap-4 { gap: 1rem; }
+        .p-12 { padding: 3rem; }
+        .p-8 { padding: 2rem; }
+        .px-12 { padding-left: 3rem; padding-right: 3rem; }
+        .pb-8 { padding-bottom: 2rem; }
+        .pt-8 { padding-top: 2rem; }
+        .mb-12 { margin-bottom: 3rem; }
+        .mt-auto { margin-top: auto; }
+        .w-full { width: 100%; }
+        .w-80 { width: 20rem; }
+        .h-32 { height: 8rem; }
+        .rounded-2xl { border-radius: 1rem; }
+        .rounded-xl { border-radius: 0.75rem; }
+        .border { border-width: 1px; border-style: solid; }
+        .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+        .border-t { border-top-width: 1px; border-top-style: solid; }
+        .font-black { font-weight: 900; }
+        .font-bold { font-weight: 700; }
+        .font-medium { font-weight: 500; }
+        .uppercase { text-transform: uppercase; }
+        .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+        .text-6xl { font-size: 3.75rem; line-height: 1; }
+        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+        .text-xs { font-size: 0.75rem; line-height: 1rem; }
+        .text-\\[11px\\] { font-size: 11px; }
+        .text-\\[12px\\] { font-size: 12px; }
+        .text-\\[10px\\] { font-size: 10px; }
+        .text-\\[9px\\] { font-size: 9px; }
+        .tracking-tighter { letter-spacing: -0.05em; }
+        .tracking-widest { letter-spacing: 0.1em; }
+        .tracking-\\[0\\.2em\\] { letter-spacing: 0.2em; }
+        .opacity-10 { opacity: 0.1; }
+        .relative { position: relative; }
+        .absolute { position: absolute; }
+        .top-0 { top: 0; }
+        .left-0 { left: 0; }
+        .right-12 { right: 3rem; }
+        .top-10 { top: 2.5rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; text-align: left; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .italic { font-style: italic; }
+        .whitespace-pre-wrap { white-space: pre-wrap; }
+        img { max-width: 100%; height: auto; }
+      </style>`);
+      
+      printWindow.document.write('</head><body>');
+      printWindow.document.write(printContent);
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.focus();
+      
+      // Slight timeout ensures styles and images load before printing
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 250);
+    }
   };
 
   const handleSavePdf = async () => {
@@ -129,7 +222,7 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
         )}
       </DialogTrigger>
       <DialogContent className="max-w-5xl h-[95dvh] flex flex-col p-0 border-none bg-slate-200 overflow-hidden">
-        <DialogHeader className="print:hidden p-4 bg-background border-b z-20">
+        <DialogHeader className="p-4 bg-background border-b z-20">
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
             Invoice Preview
@@ -137,11 +230,11 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
         </DialogHeader>
         
         {/* Document Viewer Area */}
-        <div className="flex-1 overflow-y-auto p-8 print:p-0 print:overflow-visible">
+        <div className="flex-1 overflow-y-auto p-8">
             <div 
                 ref={viewRef}
                 id="invoice-content" 
-                className="mx-auto w-full max-w-[210mm] bg-white text-slate-900 shadow-2xl print:shadow-none min-h-[297mm] flex flex-col relative overflow-hidden font-sans invoice-print-container"
+                className="mx-auto w-[210mm] min-h-[297mm] bg-white text-slate-900 shadow-2xl flex flex-col relative overflow-hidden font-sans invoice-print-container"
             >
                 {/* Top Accent */}
                 <div className="absolute top-0 left-0 w-full h-2 bg-primary z-20" />
@@ -307,7 +400,7 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
             </div>
         </div>
 
-        <DialogFooter className="p-6 bg-background border-t print:hidden flex items-center justify-center gap-4 flex-row">
+        <DialogFooter className="p-6 bg-background border-t flex items-center justify-center gap-4 flex-row">
             <Button variant="outline" size="lg" onClick={handlePrint} className="bg-white border-slate-200 hover:bg-slate-50 shadow-sm px-8 text-slate-900">
                 <Printer className="mr-2 h-4 w-4" />
                 Print Preview
@@ -325,55 +418,6 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
                 )}
             </Button>
         </DialogFooter>
-
-        <style jsx global>{`
-          @media print {
-            @page { margin: 0; size: A4; }
-            html, body { 
-              margin: 0 !important; 
-              padding: 0 !important; 
-              background: white !important; 
-              -webkit-print-color-adjust: exact !important; 
-              print-color-adjust: exact !important;
-              overflow: visible !important;
-              height: auto !important;
-            }
-            header, footer, nav, button, .print\\:hidden { display: none !important; }
-            .dialog-overlay, [data-radix-portal] { 
-               background: white !important; 
-               position: absolute !important; 
-               top: 0 !important;
-               left: 0 !important;
-               width: 100% !important;
-               height: 100% !important;
-            }
-            .dialog-content { 
-              background: white !important; 
-              box-shadow: none !important; 
-              border: none !important; 
-              position: absolute !important; 
-              top: 0 !important; 
-              left: 0 !important; 
-              width: 100% !important; 
-              max-width: none !important; 
-              padding: 0 !important; 
-              margin: 0 !important; 
-              overflow: visible !important; 
-              display: block !important;
-            }
-            #invoice-content { 
-              width: 210mm !important; 
-              min-height: 297mm !important; 
-              margin: 0 !important; 
-              padding: 0 !important; 
-              box-shadow: none !important; 
-              border: none !important;
-              position: relative !important;
-              overflow: visible !important;
-            }
-            .scrollbar-hide::-webkit-scrollbar { display: none; }
-          }
-        `}</style>
       </DialogContent>
     </Dialog>
   );
