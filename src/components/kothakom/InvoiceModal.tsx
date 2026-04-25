@@ -5,7 +5,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,7 @@ import { useFirebase, useDoc, useMemoFirebase, useUser, useCollection } from '@/
 import { collection, doc } from 'firebase/firestore';
 import { format, addDays } from 'date-fns';
 import Image from 'next/image';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -50,18 +49,26 @@ type UserProfile = {
 };
 
 interface InvoiceModalProps {
-  record: FinanceRecord;
+  record: FinanceRecord | null;
   project?: any;
-  trigger?: React.ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 const DARK_NAVY = "text-[#000033]"; 
 
-export default function InvoiceModal({ record, project, trigger }: InvoiceModalProps) {
+export default function InvoiceModal({ record, project, open, onOpenChange }: InvoiceModalProps) {
   const { firestore } = useFirebase();
   const { user } = useUser();
   const viewRef = useRef<HTMLDivElement>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Failsafe cleanup to ensure body pointer events are restored
+  useEffect(() => {
+    return () => {
+      document.body.style.pointerEvents = "";
+    };
+  }, []);
   
   const settingsRef = useMemoFirebase(() => firestore ? doc(firestore, 'settings', 'business') : null, [firestore]);
   const { data: settings } = useDoc<BusinessSettings>(settingsRef);
@@ -79,10 +86,11 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
   }, [users, user]);
 
   const invoiceNumber = useMemo(() => {
+    if (!record) return '';
     const idPart = record.id.slice(-5).toUpperCase();
     const datePart = format(new Date(record.date), "yyyyMM");
     return `INV-${datePart}-${idPart}`;
-  }, [record.id, record.date]);
+  }, [record]);
 
   const handlePrint = () => {
     if (!viewRef.current) return;
@@ -208,15 +216,10 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
     }
   };
 
+  if (!record) return null;
+
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        {trigger || (
-            <Button size="icon" variant="ghost" className="h-7 w-7 text-primary" title="Create Invoice">
-                <FileText className="h-3.5 w-3.5" />
-            </Button>
-        )}
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl h-[95dvh] flex flex-col p-0 border-none bg-slate-200 overflow-hidden">
         <DialogHeader className="p-4 bg-background border-b z-20">
           <DialogTitle className="flex items-center gap-2">
@@ -267,7 +270,7 @@ export default function InvoiceModal({ record, project, trigger }: InvoiceModalP
                             </h4>
                             <div className="text-[12px] leading-relaxed text-slate-600 space-y-0.5">
                                 <p className="font-black text-slate-900 text-sm">{settings?.companyName || 'Remotized IT'}</p>
-                                <p className="whitespace-pre-wrap max-w-xs">{settings?.address || 'Your Business Address'}</p>
+                                <p className="whitespace-pre-wrap max-w-xs">{settings?.address || 'Office Address'}</p>
                                 <p className="text-primary font-bold">{settings?.email || 'billing@company.com'}</p>
                                 <p>{settings?.phone || ''}</p>
                             </div>

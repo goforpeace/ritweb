@@ -84,6 +84,7 @@ export default function FinancePage() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<FinanceRecord | null>(null);
   const [viewingRecord, setViewingRecord] = useState<FinanceRecord | null>(null);
+  const [invoiceRecord, setInvoiceRecord] = useState<FinanceRecord | null>(null);
   const [showDeleted, setShowDeleted] = useState(false);
   const [pastedImage, setPastedImage] = useState<string | null>(null);
 
@@ -187,7 +188,7 @@ export default function FinancePage() {
     if (editingRecord) {
         const docRef = doc(firestore, 'finance', editingRecord.id);
         updateDocumentNonBlocking(docRef, data);
-        toast({ title: "Record Updated", description: `Transaction "${values.title}" has been modified.` });
+        toast({ title: "Record Updated", description: `Transaction modified.` });
     } else {
         addDocumentNonBlocking(financeRef, {
             ...data,
@@ -209,7 +210,7 @@ export default function FinancePage() {
     updateDocumentNonBlocking(docRef, { isDeleted });
     toast({ 
         title: isDeleted ? "Record Deleted" : "Record Restored", 
-        description: isDeleted ? "Item moved to trash and excluded from stats." : "Item returned to ledger.",
+        description: isDeleted ? "Item moved to trash." : "Item returned to ledger.",
         variant: isDeleted ? "destructive" : "default" 
     });
   };
@@ -420,7 +421,7 @@ export default function FinancePage() {
           ) : filteredRecords.length === 0 ? (
             <div className="py-20 text-center border-2 border-dashed rounded-lg">
               <Banknote className="mx-auto h-8 w-8 text-muted-foreground mb-4 opacity-50" />
-              <p className="text-muted-foreground">No {showDeleted ? 'deleted ' : ''}records matching your search.</p>
+              <p className="text-muted-foreground">No {showDeleted ? 'deleted ' : ''}records found.</p>
             </div>
           ) : (
             <div className="rounded-md border overflow-hidden">
@@ -506,23 +507,17 @@ export default function FinancePage() {
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 {!showDeleted ? (
                                     <>
-                                        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setViewingRecord(record); }}>
+                                        <DropdownMenuItem onSelect={() => setViewingRecord(record)}>
                                             <Eye className="mr-2 h-4 w-4" /> View Details
                                         </DropdownMenuItem>
                                         
                                         {record.type === 'Income' && (
-                                            <InvoiceModal 
-                                                record={record} 
-                                                project={projects?.find(p => p.id === record.projectId)} 
-                                                trigger={
-                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                        <FileDown className="mr-2 h-4 w-4" /> Create Invoice
-                                                    </DropdownMenuItem>
-                                                }
-                                            />
+                                          <DropdownMenuItem onSelect={() => setInvoiceRecord(record)}>
+                                              <FileDown className="mr-2 h-4 w-4" /> Create Invoice
+                                          </DropdownMenuItem>
                                         )}
 
-                                        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setEditingRecord(record); setIsAddOpen(true); }}>
+                                        <DropdownMenuItem onSelect={() => { setEditingRecord(record); setIsAddOpen(true); }}>
                                             <Pencil className="mr-2 h-4 w-4" /> Edit Record
                                         </DropdownMenuItem>
                                         
@@ -601,6 +596,13 @@ export default function FinancePage() {
             )}
         </DialogContent>
       </Dialog>
+
+      <InvoiceModal 
+          record={invoiceRecord} 
+          project={projects?.find(p => p.id === invoiceRecord?.projectId)} 
+          open={!!invoiceRecord}
+          onOpenChange={(val) => !val && setInvoiceRecord(null)}
+      />
     </div>
   );
 }

@@ -31,7 +31,6 @@ import {
 } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import UserSelect from '@/components/kothakom/UserSelect';
 import {
@@ -43,7 +42,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
@@ -101,6 +99,7 @@ export default function ProjectsPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
 
   const projectsRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -152,15 +151,16 @@ export default function ProjectsPage() {
       workHours: 0,
       createdAt: new Date().toISOString(),
     });
-    toast({ title: "Project Created", description: `${values.name} has been added to portal.` });
+    toast({ title: "Project Created", description: `${values.name} has been added.` });
     form.reset();
     setIsAddOpen(false);
   }
 
-  const handleDelete = (id: string) => {
-    if (!firestore) return;
-    deleteDocumentNonBlocking(doc(firestore, 'projects', id));
+  const handleDelete = () => {
+    if (!firestore || !projectToDelete) return;
+    deleteDocumentNonBlocking(doc(firestore, 'projects', projectToDelete));
     toast({ title: "Project Deleted", variant: "destructive" });
+    setProjectToDelete(null);
   };
 
   return (
@@ -168,7 +168,7 @@ export default function ProjectsPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Project Portfolio</h1>
-          <p className="text-muted-foreground mt-1">Manage deliverables, budgets, and team allocations.</p>
+          <p className="text-muted-foreground mt-1">Manage deliverables and team allocations.</p>
         </div>
 
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
@@ -304,7 +304,7 @@ export default function ProjectsPage() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
-          placeholder="Search projects by title..." 
+          placeholder="Search projects..." 
           className="pl-9 h-12"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -376,23 +376,12 @@ export default function ProjectsPage() {
                                     <Eye className="mr-2 h-4 w-4" /> View Portal
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
-                                            <Trash2 className="mr-2 h-4 w-4" /> Delete Project
-                                        </DropdownMenuItem>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Delete Project?</AlertDialogTitle>
-                                            <AlertDialogDescription>This will permanently remove this project profile.</AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleDelete(project.id)} className="bg-destructive text-destructive-foreground">Delete</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
+                                <DropdownMenuItem 
+                                    onSelect={() => setProjectToDelete(project.id)} 
+                                    className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" /> Delete Project
+                                </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -404,6 +393,19 @@ export default function ProjectsPage() {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!projectToDelete} onOpenChange={(val) => !val && setProjectToDelete(null)}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Project?</AlertDialogTitle>
+                  <AlertDialogDescription>This will permanently remove this project profile.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">Delete</AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
