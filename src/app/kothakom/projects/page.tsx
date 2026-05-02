@@ -32,6 +32,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { Textarea } from '@/components/ui/textarea';
 import UserSelect from '@/components/kothakom/UserSelect';
 import {
   AlertDialog,
