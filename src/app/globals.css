@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,16 +15,16 @@
     --popover: 60 100% 95%;
     --popover-foreground: 0 0% 29%;
     
-    --primary: 211 16% 51%;   /* #6D8196 */
+    --primary: 209 16% 51%;   /* #6D8196 - Steel Blue */
     --primary-foreground: 60 100% 98%;
     
-    --secondary: 0 0% 80%;    /* #CBCBCB */
+    --secondary: 0 0% 80%;    /* #CBCBCB - Soft Gray */
     --secondary-foreground: 0 0% 20%;
     
     --muted: 0 0% 80%;        /* #CBCBCB */
     --muted-foreground: 0 0% 45%;
     
-    --accent: 211 16% 51%;
+    --accent: 209 16% 51%;
     --accent-foreground: 60 100% 98%;
     
     --destructive: 0 84% 60%;
@@ -31,11 +32,11 @@
     
     --border: 0 0% 80%;       /* #CBCBCB */
     --input: 0 0% 80%;
-    --ring: 211 16% 51%;
+    --ring: 209 16% 51%;
     
     --radius: 0.5rem;
     
-    --chart-1: 211 16% 51%;
+    --chart-1: 209 16% 51%;
     --chart-2: 0 0% 29%;
     --chart-3: 0 0% 80%;
     --chart-4: 60 100% 90%;
@@ -44,12 +45,12 @@
     /* Sidebar */
     --sidebar-background: 60 100% 94%;
     --sidebar-foreground: 0 0% 29%;
-    --sidebar-primary: 211 16% 51%;
+    --sidebar-primary: 209 16% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 85%;
     --sidebar-accent-foreground: 0 0% 20%;
     --sidebar-border: 0 0% 80%;
-    --sidebar-ring: 211 16% 51%;
+    --sidebar-ring: 209 16% 51%;
   }
 }
 
@@ -76,7 +77,7 @@
   /* Native date picker styling - Inverted for visibility */
   input[type="date"]::-webkit-calendar-picker-indicator {
     cursor: pointer;
-    filter: invert(0.5); /* Makes it greyish/visible on light bg */
+    filter: invert(1); /* Makes the calendar icon white */
   }
 }
 

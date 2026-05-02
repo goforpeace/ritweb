@@ -68,52 +68,54 @@ const Contact = () => {
   }
 
   return (
-    <section id="contact" className="py-20 sm:py-32 bg-background">
+    <section id="contact" className="py-20 sm:py-32 bg-background border-t border-secondary/30">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Get in Touch</h2>
-          <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-xl">
-            Have a question or a project in mind? Let's talk.
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-black tracking-tighter sm:text-4xl md:text-5xl uppercase text-foreground">Initiate a Conversation</h2>
+          <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-xl font-medium">
+            Have a complex IT challenge? Let's engineer a solution together.
           </p>
         </div>
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="bg-card p-8 rounded-lg border border-border/60">
+        <div className="grid lg:grid-cols-2 gap-16 items-start">
+          <div className="bg-white p-10 rounded-3xl border-2 border-secondary shadow-xl">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="john.doe@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-black uppercase text-[10px] tracking-widest text-primary">Your Name</FormLabel>
+                        <FormControl>
+                          <Input className="h-12 border-2 border-secondary focus:border-primary transition-colors" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-black uppercase text-[10px] tracking-widest text-primary">Email Address</FormLabel>
+                        <FormControl>
+                          <Input className="h-12 border-2 border-secondary focus:border-primary transition-colors" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   control={form.control}
                   name="company"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Company (Optional)</FormLabel>
+                      <FormLabel className="font-black uppercase text-[10px] tracking-widest text-primary">Company (Optional)</FormLabel>
                       <FormControl>
-                        <Input placeholder="Acme Inc." {...field} />
+                        <Input className="h-12 border-2 border-secondary focus:border-primary transition-colors" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -124,27 +126,41 @@ const Contact = () => {
                   name="message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Message</FormLabel>
+                      <FormLabel className="font-black uppercase text-[10px] tracking-widest text-primary">Message Details</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Tell us how we can help..." className="min-h-[120px]" {...field} />
+                        <Textarea className="min-h-[150px] border-2 border-secondary focus:border-primary transition-colors" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" size="lg">Send Message</Button>
+                <Button type="submit" className="w-full h-14 font-black uppercase tracking-widest bg-primary hover:bg-primary/90 text-white text-base shadow-lg shadow-primary/30">
+                  Send Inquiry
+                </Button>
               </form>
             </Form>
           </div>
           {mapImage && (
-            <div className="h-full w-full min-h-[400px] lg:min-h-0 rounded-lg overflow-hidden relative">
-              <Image
-                src={mapImage.imageUrl}
-                alt={mapImage.description}
-                fill
-                className="object-contain"
-                data-ai-hint={mapImage.imageHint}
-              />
+            <div className="space-y-8">
+               <div className="h-[400px] w-full rounded-3xl overflow-hidden relative border-2 border-secondary shadow-lg">
+                <Image
+                  src={mapImage.imageUrl}
+                  alt={mapImage.description}
+                  fill
+                  className="object-cover grayscale hover:grayscale-0 transition-all duration-700"
+                  data-ai-hint={mapImage.imageHint}
+                />
+              </div>
+              <div className="grid gap-6">
+                 <div className="p-6 bg-secondary/10 rounded-2xl border border-secondary/50">
+                    <h4 className="font-black uppercase text-xs tracking-widest text-primary mb-2">Global Operations</h4>
+                    <p className="text-sm font-medium text-foreground/80 leading-relaxed">Providing high-availability IT services to businesses across multiple regions and time zones.</p>
+                 </div>
+                 <div className="p-6 bg-secondary/10 rounded-2xl border border-secondary/50">
+                    <h4 className="font-black uppercase text-xs tracking-widest text-primary mb-2">Direct Contact</h4>
+                    <p className="text-sm font-medium text-foreground/80 leading-relaxed">Support: hello@remotized-it.com<br />Emergency: +1 (555) REMOTIZED</p>
+                 </div>
+              </div>
             </div>
           )}
         </div>
