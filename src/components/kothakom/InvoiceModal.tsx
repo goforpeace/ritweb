@@ -24,6 +24,7 @@ type FinanceRecord = {
   amount: number;
   date: string;
   projectId?: string;
+  status: 'Paid' | 'Unpaid' | 'Cancelled';
 };
 
 type BusinessSettings = {
@@ -107,8 +108,8 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
         } 
         body { font-family: sans-serif; background: white; color: #000000; margin: 0; padding: 0; }
         .invoice-print-container { width: 210mm; min-height: 297mm; margin: 0 auto; background: white; position: relative; }
-        .bg-primary { background-color: #00FFFF !important; }
-        .text-primary { color: #00FFFF !important; }
+        .bg-primary { background-color: #6D8196 !important; }
+        .text-primary { color: #6D8196 !important; }
         .text-\\[\\#000033\\] { color: #000033 !important; }
         .bg-slate-50 { background-color: #f8fafc !important; }
         .border-slate-100 { border-color: #f1f5f9 !important; }
@@ -144,7 +145,7 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
         .tracking-tighter { letter-spacing: -0.05em; }
         .tracking-widest { letter-spacing: 0.1em; }
         .opacity-10 { opacity: 0.1; }
-        .relative { position: relative; }
+        .relative { position: position; }
         .absolute { position: absolute; }
         .top-0 { top: 0; }
         .left-0 { left: 0; }
@@ -155,6 +156,9 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
         .text-right { text-align: right; }
         .text-center { text-align: center; }
         img { max-width: 100%; height: auto; }
+        .status-paid { background-color: #f1f5f9 !important; color: #64748b !important; }
+        .status-unpaid { background-color: #fff7ed !important; color: #f97316 !important; }
+        .status-cancelled { background-color: #fef2f2 !important; color: #ef4444 !important; }
       </style>`);
       
       printWindow.document.write('</head><body>');
@@ -175,23 +179,14 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
     setIsSaving(true);
     
     try {
-      // Precise capture for A4 fitting
       const element = viewRef.current;
       const canvas = await html2canvas(element, { 
-        scale: 4, // High resolution
+        scale: 4, 
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
         width: element.offsetWidth,
         height: element.offsetHeight,
-        onclone: (clonedDoc) => {
-            // Ensure no scrollbars or weird shifts in clone
-            const clonedEl = clonedDoc.querySelector('.invoice-print-container') as HTMLElement;
-            if (clonedEl) {
-                clonedEl.style.boxShadow = 'none';
-                clonedEl.style.transform = 'none';
-            }
-        }
       });
       
       const imgData = canvas.toDataURL('image/png');
@@ -249,8 +244,13 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                     <div className="text-right">
                         <h1 className={cn("text-6xl font-black tracking-tighter uppercase select-none opacity-10 absolute right-12 top-10 pointer-events-none", DARK_NAVY)}>Invoice</h1>
                         <div className="relative z-10 pt-10">
-                            <div className="text-[11px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full">
-                                Status: Paid
+                            <div className={cn(
+                                "text-[11px] font-black uppercase tracking-widest px-3 py-1 rounded-full",
+                                record.status === 'Paid' ? "text-slate-500 bg-slate-100 status-paid" : 
+                                record.status === 'Unpaid' ? "text-orange-500 bg-orange-50 status-unpaid" : 
+                                "text-red-500 bg-red-50 status-cancelled"
+                            )}>
+                                Status: {record.status}
                             </div>
                         </div>
                     </div>
