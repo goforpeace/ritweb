@@ -12,7 +12,6 @@ import { FileText, Printer, Download, Loader2 } from 'lucide-react';
 import { useFirebase, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import { format, addDays } from 'date-fns';
-import Image from 'next/image';
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import html2canvas from 'html2canvas';
@@ -64,7 +63,6 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
   const viewRef = useRef<HTMLDivElement>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Failsafe to restore body pointer events and scrolling when modal unmounts
   useEffect(() => {
     return () => {
       document.body.style.pointerEvents = "";
@@ -156,9 +154,6 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
         .text-right { text-align: right; }
         .text-center { text-align: center; }
         img { max-width: 100%; height: auto; display: block; }
-        .status-paid { background-color: #f1f5f9 !important; color: #64748b !important; }
-        .status-unpaid { background-color: #fff7ed !important; color: #f97316 !important; }
-        .status-cancelled { background-color: #fef2f2 !important; color: #ef4444 !important; }
       </style>`);
       
       printWindow.document.write('</head><body>');
@@ -181,25 +176,23 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
     try {
       const element = viewRef.current;
       const canvas = await html2canvas(element, { 
-        scale: 2, // 2x is plenty for high quality A4 while keeping size small
+        scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
         width: element.offsetWidth,
         height: element.offsetHeight,
-        // Critical: handle viewport and scroll for consistent canvas capture
         scrollX: -window.scrollX,
         scrollY: -window.scrollY,
       });
       
-      // Use JPEG with 85% quality to significantly reduce file size (from 50MB to <1MB)
       const imgData = canvas.toDataURL('image/jpeg', 0.85);
       
       const pdf = new jsPDF({
         orientation: 'p',
         unit: 'mm',
         format: 'a4',
-        compress: true // Enable jsPDF built-in compression
+        compress: true
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -238,15 +231,12 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                 <div className="p-12 pb-8 flex justify-between items-start z-10 relative">
                     <div className="space-y-6">
                         {settings?.logoUrl ? (
-                            <div className="relative h-32 w-80 flex items-center justify-start">
-                                {/* Explicit width and height helps html2canvas avoid stretching */}
-                                <Image 
+                            <div className="h-28 w-72 flex items-center justify-start overflow-hidden">
+                                <img 
                                     src={settings.logoUrl} 
                                     alt="Company Logo" 
-                                    width={320} 
-                                    height={128} 
-                                    className="object-contain object-left" 
-                                    unoptimized 
+                                    className="max-h-full max-w-full object-contain"
+                                    style={{ display: 'block' }}
                                 />
                             </div>
                         ) : (
@@ -257,16 +247,6 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                     </div>
                     <div className="text-right">
                         <h1 className={cn("text-6xl font-black tracking-tighter uppercase select-none opacity-10 absolute right-12 top-10 pointer-events-none", DARK_NAVY)}>Invoice</h1>
-                        <div className="relative z-10 pt-10">
-                            <div className={cn(
-                                "text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm inline-block border",
-                                record.status === 'Paid' ? "text-slate-500 bg-slate-100 border-slate-200 status-paid" : 
-                                record.status === 'Unpaid' ? "text-orange-600 bg-orange-50 border-orange-200 status-unpaid" : 
-                                "text-red-600 bg-red-50 border-red-200 status-cancelled"
-                            )}>
-                                Status: {record.status}
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -291,7 +271,17 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                         </div>
                     </div>
 
-                    <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 flex flex-col justify-center gap-4">
+                    <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 flex flex-col justify-center gap-4 relative">
+                        <div className="absolute -top-4 -right-4">
+                             <div className={cn(
+                                "text-[12px] font-black uppercase tracking-widest px-6 py-2 rounded-lg shadow-md border-2",
+                                record.status === 'Paid' ? "text-emerald-700 bg-white border-emerald-500" : 
+                                record.status === 'Unpaid' ? "text-orange-700 bg-white border-orange-500" : 
+                                "text-red-700 bg-white border-red-500"
+                            )}>
+                                {record.status}
+                            </div>
+                        </div>
                         <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Invoice Number</span>
                             <span className={cn("text-sm font-black", DARK_NAVY)}>{invoiceNumber}</span>
