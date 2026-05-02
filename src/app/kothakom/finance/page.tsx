@@ -82,9 +82,12 @@ export default function FinancePage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
+  
+  // Lifted state for modals to prevent freezing bug
   const [editingRecord, setEditingRecord] = useState<FinanceRecord | null>(null);
   const [viewingRecord, setViewingRecord] = useState<FinanceRecord | null>(null);
   const [invoiceRecord, setInvoiceRecord] = useState<FinanceRecord | null>(null);
+  
   const [showDeleted, setShowDeleted] = useState(false);
   const [pastedImage, setPastedImage] = useState<string | null>(null);
 
@@ -188,14 +191,14 @@ export default function FinancePage() {
     if (editingRecord) {
         const docRef = doc(firestore, 'finance', editingRecord.id);
         updateDocumentNonBlocking(docRef, data);
-        toast({ title: "Record Updated", description: `Transaction modified.` });
+        toast({ title: "Record Updated" });
     } else {
         addDocumentNonBlocking(financeRef, {
             ...data,
             createdBy: user?.displayName || user?.email || 'System',
             createdAt: new Date().toISOString()
         });
-        toast({ title: "Transaction Recorded", description: `Record for Tk ${values.amount} saved.` });
+        toast({ title: "Transaction Recorded" });
     }
 
     form.reset();
@@ -210,7 +213,6 @@ export default function FinancePage() {
     updateDocumentNonBlocking(docRef, { isDeleted });
     toast({ 
         title: isDeleted ? "Record Deleted" : "Record Restored", 
-        description: isDeleted ? "Item moved to trash." : "Item returned to ledger.",
         variant: isDeleted ? "destructive" : "default" 
     });
   };
@@ -219,7 +221,7 @@ export default function FinancePage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Teka Poisha</h1>
+          <h1 className="text-3xl font-black tracking-tight uppercase">Teka Poisha</h1>
           <p className="text-muted-foreground mt-1">Cashflow management and financial records.</p>
         </div>
 
@@ -229,168 +231,44 @@ export default function FinancePage() {
                 variant="outline" 
                 size="sm"
                 onClick={() => setShowDeleted(!showDeleted)}
-                className={cn(showDeleted && "bg-destructive/10 border-destructive text-destructive hover:bg-destructive/20")}
+                className={cn("font-bold uppercase tracking-tighter", showDeleted && "bg-destructive/10 border-destructive text-destructive hover:bg-destructive/20")}
             >
                 {showDeleted ? <RotateCcw className="mr-2 h-4 w-4" /> : <Trash2 className="mr-2 h-4 w-4" />}
                 {showDeleted ? "Ledger" : "Trash"}
             </Button>
 
-            <Dialog open={isAddOpen} onOpenChange={(val) => { 
-                setIsAddOpen(val); 
-                if(!val) { setPastedImage(null); setEditingRecord(null); } 
-            }}>
-            <DialogTrigger asChild>
-                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                    <PlusCircle className="mr-2 h-4 w-4" /> New Transaction
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-                <DialogHeader>
-                <DialogTitle>{editingRecord ? "Edit Record" : "Add Financial Record"}</DialogTitle>
-                </DialogHeader>
-                <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                    <FormField control={form.control} name="projectId" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Link Project</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || 'none'}>
-                            <FormControl><SelectTrigger><SelectValue placeholder="Select Project" /></SelectTrigger></FormControl>
-                            <SelectContent>
-                                <SelectItem value="none">None / General</SelectItem>
-                                {projects?.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                    )} />
-
-                    <FormField control={form.control} name="title" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Title</FormLabel>
-                        <FormControl><Input {...field} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )} />
-
-                    <FormField control={form.control} name="referenceNote" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Reference Note & Attachments</FormLabel>
-                        <FormControl>
-                            <div className="relative">
-                                <Textarea 
-                                    onPaste={handlePaste}
-                                    {...field}
-                                    className="min-h-[100px] text-xs"
-                                />
-                                <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground flex items-center gap-1 opacity-50">
-                                    <ImageIcon className="h-3 w-3" />
-                                    <span>Paste Screenshots Support</span>
-                                </div>
-                            </div>
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )} />
-
-                    {pastedImage && (
-                        <div className="relative w-full h-32 border rounded-lg overflow-hidden group">
-                            <Image src={pastedImage} alt="Reference Attachment" fill className="object-contain bg-black/5" />
-                            <button 
-                                type="button" 
-                                onClick={() => setPastedImage(null)}
-                                className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"
-                            >
-                                <X className="h-4 w-4" />
-                            </button>
-                        </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormField control={form.control} name="amount" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Amount (Tk)</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )} />
-                        <FormField control={form.control} name="date" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Date</FormLabel>
-                            <FormControl><Input type="date" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormField control={form.control} name="type" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Transaction Type</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    <SelectItem value="Income">Income (+)</SelectItem>
-                                    <SelectItem value="Expense">Expense (-)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                        )} />
-                        <FormField control={form.control} name="status" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Payment Status</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    <SelectItem value="Paid">Paid</SelectItem>
-                                    <SelectItem value="Unpaid">Unpaid</SelectItem>
-                                    <SelectItem value="Cancelled">Cancelled</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                        )} />
-                    </div>
-                    <DialogFooter>
-                    <Button type="submit" className="w-full h-12 text-lg font-bold">
-                        {editingRecord ? "Save Changes" : "Record Transaction"}
-                    </Button>
-                    </DialogFooter>
-                </form>
-                </Form>
-            </DialogContent>
-            </Dialog>
+            <Button className="font-bold uppercase tracking-tighter" onClick={() => setIsAddOpen(true)}>
+                <PlusCircle className="mr-2 h-4 w-4" /> New Transaction
+            </Button>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="bg-emerald-500/5 border-emerald-500/20">
+        <Card className="ink-card border-l-4 border-l-black">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Net Revenue</CardTitle>
-                <TrendingUp className="h-4 w-4 text-emerald-500" />
+                <CardTitle className="text-xs font-black uppercase tracking-widest text-muted-foreground">Net Revenue</CardTitle>
+                <TrendingUp className="h-4 w-4 text-black" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-black text-emerald-500">Tk {stats.income.toLocaleString()}</div>
-                <p className="text-[10px] text-muted-foreground mt-1 font-medium">TOTAL RECEIVED PAYMENTS</p>
+                <div className="text-2xl font-black">Tk {stats.income.toLocaleString()}</div>
             </CardContent>
         </Card>
-        <Card className="bg-red-500/5 border-red-500/20">
+        <Card className="ink-card border-l-4 border-l-muted">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Business Expenses</CardTitle>
-                <TrendingDown className="h-4 w-4 text-red-500" />
+                <CardTitle className="text-xs font-black uppercase tracking-widest text-muted-foreground">Expenses</CardTitle>
+                <TrendingDown className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-black text-red-500">Tk {stats.expenses.toLocaleString()}</div>
-                <p className="text-[10px] text-muted-foreground mt-1 font-medium">TOTAL PAID EXPENDITURE</p>
+                <div className="text-2xl font-black">Tk {stats.expenses.toLocaleString()}</div>
             </CardContent>
         </Card>
-        <Card className="bg-primary/5 border-primary/20">
+        <Card className="ink-card bg-black text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Net Cashflow</CardTitle>
-                <Wallet className="h-4 w-4 text-primary" />
+                <CardTitle className="text-xs font-black uppercase tracking-widest text-white/60">Balance</CardTitle>
+                <Wallet className="h-4 w-4" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-black text-primary">Tk {stats.balance.toLocaleString()}</div>
-                <p className="text-[10px] text-muted-foreground mt-1 font-medium">TOTAL OPERATING BALANCE</p>
+                <div className="text-2xl font-black">Tk {stats.balance.toLocaleString()}</div>
             </CardContent>
         </Card>
       </div>
@@ -399,197 +277,228 @@ export default function FinancePage() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
           placeholder="Search records..." 
-          className="pl-9 h-11"
+          className="pl-9 h-11 border-2 focus-visible:ring-black"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      <Card className={cn(showDeleted && "border-destructive/30 bg-destructive/5")}>
-        <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-                {showDeleted && <AlertTriangle className="h-4 w-4 text-destructive" />}
-                <CardTitle className="text-lg">
-                    {showDeleted ? "Finance Trash" : "Transaction Ledger"}
-                </CardTitle>
-            </div>
-            {showDeleted && <CardDescription>Records in trash are not calculated in your business balance.</CardDescription>}
-        </CardHeader>
-        <CardContent>
+      <Card className={cn("ink-card", showDeleted && "border-destructive/30 bg-destructive/5")}>
+        <CardContent className="p-0">
           {isLoading ? (
-            <div className="py-10 text-center animate-pulse">Syncing ledger...</div>
+            <div className="py-20 text-center animate-pulse">Syncing ledger...</div>
           ) : filteredRecords.length === 0 ? (
-            <div className="py-20 text-center border-2 border-dashed rounded-lg">
-              <Banknote className="mx-auto h-8 w-8 text-muted-foreground mb-4 opacity-50" />
-              <p className="text-muted-foreground">No {showDeleted ? 'deleted ' : ''}records found.</p>
+            <div className="py-20 text-center opacity-40">
+              <Banknote className="mx-auto h-8 w-8 mb-4" />
+              <p>No records found.</p>
             </div>
           ) : (
-            <div className="rounded-md border overflow-hidden">
-              <Table>
-                <TableHeader className="bg-muted/50">
-                  <TableRow>
-                    <TableHead className="w-[100px]">TID</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Title & Reference Note</TableHead>
-                    <TableHead>Created By</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredRecords.map((record) => (
-                    <TableRow key={record.id} className="group">
-                      <TableCell className="text-[10px] font-mono font-bold text-muted-foreground">
-                        #TXN-{record.id.slice(-6).toUpperCase()}
-                      </TableCell>
-                      <TableCell className="text-xs whitespace-nowrap">{record.date}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-0.5">
-                            <span className="font-bold text-sm flex items-center gap-1.5">
-                                {record.title}
-                                {record.imageUrl && <ImageIcon className="h-3 w-3 text-primary animate-pulse" />}
-                            </span>
-                            {record.referenceNote && (
-                                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                    <FileText className="h-2.5 w-2.5" />
-                                    {record.referenceNote.length > 50 ? `${record.referenceNote.substring(0, 50)}...` : record.referenceNote}
-                                </span>
-                            )}
-                            {record.projectId && (
-                                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                    <LinkIcon className="h-2.5 w-2.5" />
-                                    {projectMap.get(record.projectId) || 'Linked Project'}
-                                </span>
-                            )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                         <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                            <User className="h-3 w-3" />
-                            {record.createdBy || 'Unknown'}
-                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className={cn(
-                            "text-[10px] font-bold h-5 px-1.5",
-                            record.type === 'Income' ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600"
-                        )}>
-                            {record.type === 'Income' ? 'REV' : 'EXP'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={cn(
-                            "text-[10px] font-medium h-5 px-1.5",
-                            record.status === 'Paid' ? "border-emerald-500/50 text-emerald-500" : 
-                            record.status === 'Unpaid' ? "border-orange-500/50 text-orange-500" :
-                            "border-muted text-muted-foreground"
-                        )}>
-                            {record.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className={cn(
-                          "text-right font-mono font-bold text-sm",
-                          record.type === 'Income' ? "text-emerald-500" : "text-red-500"
+            <Table>
+              <TableHeader className="ink-table-header">
+                <TableRow>
+                  <TableHead className="w-[100px]">TID</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Title & Project</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredRecords.map((record) => (
+                  <TableRow key={record.id} className="hover:bg-muted/30 transition-colors">
+                    <TableCell className="text-[10px] font-mono font-black text-muted-foreground">
+                      #{record.id.slice(-6).toUpperCase()}
+                    </TableCell>
+                    <TableCell className="text-xs">{record.date}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                          <span className="font-bold text-sm">{record.title}</span>
+                          {record.projectId && (
+                              <span className="text-[9px] text-muted-foreground font-black uppercase flex items-center gap-1">
+                                  <LinkIcon className="h-2 w-2" />
+                                  {projectMap.get(record.projectId)}
+                              </span>
+                          )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={cn(
+                          "text-[9px] font-black h-5 uppercase",
+                          record.type === 'Income' ? "border-black text-black" : "border-muted-foreground text-muted-foreground"
                       )}>
-                        {record.type === 'Income' ? '+' : '-'}Tk {record.amount.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <span className="sr-only">Open menu</span>
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                {!showDeleted ? (
-                                    <>
-                                        <DropdownMenuItem onSelect={() => setViewingRecord(record)}>
-                                            <Eye className="mr-2 h-4 w-4" /> View Details
+                          {record.type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className={cn(
+                        "text-right font-mono font-black",
+                        record.type === 'Income' ? "text-black" : "text-muted-foreground"
+                    )}>
+                      Tk {record.amount.toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                              <DropdownMenuLabel className="text-[10px] font-black uppercase">Actions</DropdownMenuLabel>
+                              {!showDeleted ? (
+                                  <>
+                                      <DropdownMenuItem onSelect={() => setViewingRecord(record)}>
+                                          <Eye className="mr-2 h-4 w-4" /> View
+                                      </DropdownMenuItem>
+                                      {record.type === 'Income' && (
+                                        <DropdownMenuItem onSelect={() => setInvoiceRecord(record)}>
+                                            <FileDown className="mr-2 h-4 w-4" /> Invoice
                                         </DropdownMenuItem>
-                                        
-                                        {record.type === 'Income' && (
-                                          <DropdownMenuItem onSelect={() => setInvoiceRecord(record)}>
-                                              <FileDown className="mr-2 h-4 w-4" /> Create Invoice
-                                          </DropdownMenuItem>
-                                        )}
-
-                                        <DropdownMenuItem onSelect={() => { setEditingRecord(record); setIsAddOpen(true); }}>
-                                            <Pencil className="mr-2 h-4 w-4" /> Edit Record
-                                        </DropdownMenuItem>
-                                        
-                                        <DropdownMenuSeparator />
-                                        
-                                        <DropdownMenuItem 
-                                            onSelect={() => toggleDelete(record.id, true)} 
-                                            className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                                        >
-                                            <Trash2 className="mr-2 h-4 w-4" /> Delete Record
-                                        </DropdownMenuItem>
-                                    </>
-                                ) : (
-                                    <DropdownMenuItem onSelect={() => toggleDelete(record.id, false)}>
-                                        <RotateCcw className="mr-2 h-4 w-4" /> Restore Record
-                                    </DropdownMenuItem>
-                                )}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                                      )}
+                                      <DropdownMenuItem onSelect={() => setEditingRecord(record)}>
+                                          <Pencil className="mr-2 h-4 w-4" /> Edit
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem 
+                                          onSelect={() => toggleDelete(record.id, true)} 
+                                          className="text-destructive font-bold"
+                                      >
+                                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                      </DropdownMenuItem>
+                                  </>
+                              ) : (
+                                  <DropdownMenuItem onSelect={() => toggleDelete(record.id, false)}>
+                                      <RotateCcw className="mr-2 h-4 w-4" /> Restore
+                                  </DropdownMenuItem>
+                              )}
+                          </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
 
-      <Dialog open={!!viewingRecord} onOpenChange={(val) => !val && setViewingRecord(null)}>
-        <DialogContent className="max-w-2xl">
+      {/* Lifted Modals */}
+      <Dialog open={isAddOpen || !!editingRecord} onOpenChange={(val) => { if(!val) { setIsAddOpen(false); setEditingRecord(null); setPastedImage(null); } }}>
+        <DialogContent className="max-w-md border-2 border-black shadow-xl">
             <DialogHeader>
-                <DialogTitle>Transaction Details</DialogTitle>
-                <DialogDescription>Full record information and attachments.</DialogDescription>
+              <DialogTitle className="font-black uppercase">{editingRecord ? "Edit Record" : "Add Transaction"}</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                <FormField control={form.control} name="projectId" render={({ field }) => (
+                <FormItem>
+                    <FormLabel className="font-black uppercase text-xs">Link Project</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || 'none'}>
+                        <FormControl><SelectTrigger className="border-2"><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                            <SelectItem value="none">General / None</SelectItem>
+                            {projects?.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </FormItem>
+                )} />
+
+                <FormField control={form.control} name="title" render={({ field }) => (
+                <FormItem>
+                    <FormLabel className="font-black uppercase text-xs">Title</FormLabel>
+                    <FormControl><Input className="border-2" {...field} /></FormControl>
+                    <FormMessage />
+                </FormItem>
+                )} />
+
+                <FormField control={form.control} name="referenceNote" render={({ field }) => (
+                <FormItem>
+                    <FormLabel className="font-black uppercase text-xs">Note</FormLabel>
+                    <FormControl>
+                        <Textarea onPaste={handlePaste} {...field} className="min-h-[100px] border-2 text-xs" />
+                    </FormControl>
+                </FormItem>
+                )} />
+
+                {pastedImage && (
+                    <div className="relative w-full h-32 border-2 rounded-lg overflow-hidden">
+                        <Image src={pastedImage} alt="Attachment" fill className="object-contain bg-muted" />
+                        <button type="button" onClick={() => setPastedImage(null)} className="absolute top-2 right-2 bg-black text-white rounded-full p-1"><X className="h-4 w-4" /></button>
+                    </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="amount" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className="font-black uppercase text-xs">Amount (Tk)</FormLabel>
+                        <FormControl><Input type="number" className="border-2" {...field} /></FormControl>
+                    </FormItem>
+                    )} />
+                    <FormField control={form.control} name="date" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className="font-black uppercase text-xs">Date</FormLabel>
+                        <FormControl><Input type="date" className="border-2" {...field} /></FormControl>
+                    </FormItem>
+                    )} />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="type" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className="font-black uppercase text-xs">Type</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl><SelectTrigger className="border-2"><SelectValue /></SelectTrigger></FormControl>
+                            <SelectContent>
+                                <SelectItem value="Income">Income (+)</SelectItem>
+                                <SelectItem value="Expense">Expense (-)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </FormItem>
+                    )} />
+                    <FormField control={form.control} name="status" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className="font-black uppercase text-xs">Status</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl><SelectTrigger className="border-2"><SelectValue /></SelectTrigger></FormControl>
+                            <SelectContent>
+                                <SelectItem value="Paid">Paid</SelectItem>
+                                <SelectItem value="Unpaid">Unpaid</SelectItem>
+                                <SelectItem value="Cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </FormItem>
+                    )} />
+                </div>
+                <Button type="submit" className="w-full font-black uppercase h-12">Save Record</Button>
+            </form>
+            </Form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!viewingRecord} onOpenChange={(val) => !val && setViewingRecord(null)}>
+        <DialogContent className="max-w-2xl border-2 border-black">
+            <DialogHeader>
+                <DialogTitle className="font-black uppercase">Transaction Details</DialogTitle>
             </DialogHeader>
             {viewingRecord && (
                 <div className="space-y-6 pt-4">
-                    <div className="flex justify-between items-start border-b pb-4">
+                    <div className="flex justify-between items-start border-b-4 border-black pb-4">
                         <div>
-                            <h3 className="text-xl font-bold">{viewingRecord.title}</h3>
-                            <p className="text-sm text-muted-foreground">{viewingRecord.date} • Created by {viewingRecord.createdBy}</p>
-                            <p className="text-[10px] font-mono mt-1 text-primary">TID: #TXN-{viewingRecord.id.slice(-6).toUpperCase()}</p>
+                            <h3 className="text-2xl font-black uppercase tracking-tight">{viewingRecord.title}</h3>
+                            <p className="text-xs font-bold text-muted-foreground uppercase">{viewingRecord.date} • By {viewingRecord.createdBy}</p>
                         </div>
                         <div className="text-right">
-                             <div className={cn(
-                                "text-2xl font-black",
-                                viewingRecord.type === 'Income' ? "text-emerald-500" : "text-red-500"
-                             )}>
-                                {viewingRecord.type === 'Income' ? '+' : '-'} Tk {viewingRecord.amount.toLocaleString()}
-                             </div>
-                             <Badge variant="outline">{viewingRecord.status}</Badge>
+                             <div className="text-3xl font-black">Tk {viewingRecord.amount.toLocaleString()}</div>
+                             <Badge variant="outline" className="font-black uppercase">{viewingRecord.status}</Badge>
                         </div>
                     </div>
-
-                    {viewingRecord.projectId && (
-                        <div className="flex items-center gap-2 text-sm">
-                            <LinkIcon className="h-4 w-4 text-primary" />
-                            <span className="font-medium text-primary">{projectMap.get(viewingRecord.projectId)}</span>
-                        </div>
-                    )}
-
                     <div className="space-y-2">
-                        <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Reference Note</h4>
-                        <p className="text-sm leading-relaxed bg-muted/30 p-4 rounded-lg whitespace-pre-wrap">{viewingRecord.referenceNote || 'No notes provided.'}</p>
+                        <h4 className="text-[10px] font-black uppercase text-muted-foreground">Reference Note</h4>
+                        <p className="text-sm bg-muted p-4 border italic">{viewingRecord.referenceNote || 'No notes.'}</p>
                     </div>
-
                     {viewingRecord.imageUrl && (
-                        <div className="space-y-2">
-                             <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Attachment</h4>
-                             <div className="relative w-full h-80 rounded-lg overflow-hidden border bg-black/5">
-                                <Image src={viewingRecord.imageUrl} alt="Attachment" fill className="object-contain" />
-                             </div>
+                        <div className="relative w-full h-80 rounded border-2 overflow-hidden bg-muted">
+                            <Image src={viewingRecord.imageUrl} alt="Attachment" fill className="object-contain" />
                         </div>
                     )}
                 </div>

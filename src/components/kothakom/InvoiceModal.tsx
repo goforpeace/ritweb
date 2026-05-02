@@ -63,9 +63,11 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
   const viewRef = useRef<HTMLDivElement>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Failsafe to restore body pointer events and scrolling when modal unmounts
   useEffect(() => {
     return () => {
       document.body.style.pointerEvents = "";
+      document.body.style.overflow = "";
     };
   }, []);
   
@@ -103,62 +105,44 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
             @page { size: A4; margin: 0; } 
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; }
         } 
-        body { font-family: sans-serif; background: white; color: #0f172a; margin: 0; padding: 0; }
+        body { font-family: sans-serif; background: white; color: #000000; margin: 0; padding: 0; }
         .invoice-print-container { width: 210mm; min-height: 297mm; margin: 0 auto; background: white; position: relative; }
         .bg-primary { background-color: #00FFFF !important; }
         .text-primary { color: #00FFFF !important; }
         .text-\\[\\#000033\\] { color: #000033 !important; }
         .bg-slate-50 { background-color: #f8fafc !important; }
-        .bg-slate-100 { background-color: #f1f5f9 !important; }
         .border-slate-100 { border-color: #f1f5f9 !important; }
         .border-slate-200 { border-color: #e2e8f0 !important; }
-        .text-slate-900 { color: #0f172a !important; }
-        .text-slate-600 { color: #475569 !important; }
-        .text-slate-500 { color: #64748b !important; }
-        .text-slate-400 { color: #94a3b8 !important; }
         .flex { display: flex; }
         .flex-col { display: flex; flex-direction: column; }
         .justify-between { justify-content: space-between; }
         .items-start { align-items: flex-start; }
         .items-end { align-items: flex-end; }
-        .items-center { align-items: center; }
         .grid { display: grid; }
         .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .gap-12 { gap: 3rem; }
-        .gap-6 { gap: 1.5rem; }
-        .gap-4 { gap: 1rem; }
         .p-12 { padding: 3rem; }
-        .p-8 { padding: 2rem; }
         .px-12 { padding-left: 3rem; padding-right: 3rem; }
-        .pb-8 { padding-bottom: 2rem; }
-        .pt-8 { padding-top: 2rem; }
         .mb-12 { margin-bottom: 3rem; }
         .mt-auto { margin-top: auto; }
         .w-full { width: 100%; }
         .w-80 { width: 20rem; }
         .h-32 { height: 8rem; }
         .rounded-2xl { border-radius: 1rem; }
-        .rounded-xl { border-radius: 0.75rem; }
         .border { border-width: 1px; border-style: solid; }
         .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
         .border-t { border-top-width: 1px; border-top-style: solid; }
         .font-black { font-weight: 900; }
         .font-bold { font-weight: 700; }
-        .font-medium { font-weight: 500; }
         .uppercase { text-transform: uppercase; }
-        .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
-        .text-6xl { font-size: 3.75rem; line-height: 1; }
-        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
-        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
-        .text-xs { font-size: 0.75rem; line-height: 1rem; }
+        .text-4xl { font-size: 2.25rem; }
+        .text-6xl { font-size: 3.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-xs { font-size: 0.75rem; }
         .text-2xl { font-size: 1.5rem; }
-        .text-\\[11px\\] { font-size: 11px; }
-        .text-\\[12px\\] { font-size: 12px; }
-        .text-\\[10px\\] { font-size: 10px; }
-        .text-\\[9px\\] { font-size: 9px; }
+        .text-lg { font-size: 1.125rem; }
         .tracking-tighter { letter-spacing: -0.05em; }
         .tracking-widest { letter-spacing: 0.1em; }
-        .tracking-\\[0\\.2em\\] { letter-spacing: 0.2em; }
         .opacity-10 { opacity: 0.1; }
         .relative { position: relative; }
         .absolute { position: absolute; }
@@ -167,11 +151,9 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
         .right-12 { right: 3rem; }
         .top-10 { top: 2.5rem; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 8px; text-align: left; }
+        th, td { padding: 12px 24px; text-align: left; }
         .text-right { text-align: right; }
         .text-center { text-align: center; }
-        .italic { font-style: italic; }
-        .whitespace-pre-wrap { white-space: pre-wrap; }
         img { max-width: 100%; height: auto; }
       </style>`);
       
@@ -193,8 +175,6 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
     setIsSaving(true);
     
     try {
-      // Use ultra-high scale for crystal clear output (4x is professional grade)
-      // PNG format is lossless, ensuring perfect text and logo rendering without blurry artifacts
       const canvas = await html2canvas(viewRef.current, { 
         scale: 4, 
         useCORS: true,
@@ -204,22 +184,19 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
         scrollY: 0,
         windowWidth: viewRef.current.scrollWidth,
         windowHeight: viewRef.current.scrollHeight,
-        imageTimeout: 0, // No timeout for images to ensure logo loads
       });
       
       const imgData = canvas.toDataURL('image/png');
-      
       const pdf = new jsPDF({
         orientation: 'p',
         unit: 'mm',
         format: 'a4',
-        compress: false // Prioritize quality over file size
+        compress: false
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      // Use PNG for maximum fidelity
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`${invoiceNumber}.pdf`);
     } catch (error) {
@@ -235,8 +212,8 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl h-[95dvh] flex flex-col p-0 border-none bg-slate-200 overflow-hidden">
         <DialogHeader className="p-4 bg-background border-b z-20">
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
+          <DialogTitle className="flex items-center gap-2 font-black uppercase">
+            <FileText className="h-5 w-5" />
             Invoice Preview
           </DialogTitle>
         </DialogHeader>
@@ -244,11 +221,10 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
         <div className="flex-1 overflow-y-auto p-8">
             <div 
                 ref={viewRef}
-                id="invoice-content" 
-                className="mx-auto w-[210mm] min-h-[297mm] bg-white text-slate-900 flex flex-col relative overflow-hidden font-sans invoice-print-container"
+                className="mx-auto w-[210mm] min-h-[297mm] bg-white text-black flex flex-col relative overflow-hidden font-sans invoice-print-container shadow-2xl"
             >
                 {/* Top Accent Bar */}
-                <div className="absolute top-0 left-0 w-full h-2 bg-primary z-20" />
+                <div className="absolute top-0 left-0 w-full h-2 bg-cyan-400 z-20" />
 
                 {/* Header Section */}
                 <div className="p-12 pb-8 flex justify-between items-start z-10 relative">
@@ -259,15 +235,14 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                             </div>
                         ) : (
                             <div className="space-y-1">
-                                <h2 className="text-4xl font-black text-primary tracking-tighter uppercase">{settings?.companyName || 'REMOTIZED IT'}</h2>
-                                <p className="text-[10px] text-primary/60 font-bold tracking-[0.2em]">SMART SOLUTIONS • GLOBAL SUPPORT</p>
+                                <h2 className="text-4xl font-black tracking-tighter uppercase">{settings?.companyName || 'REMOTIZED IT'}</h2>
                             </div>
                         )}
                     </div>
-                    <div className="text-right space-y-1">
+                    <div className="text-right">
                         <h1 className={cn("text-6xl font-black tracking-tighter uppercase select-none opacity-10 absolute right-12 top-10 pointer-events-none", DARK_NAVY)}>Invoice</h1>
-                        <div className="relative z-10">
-                            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full inline-block mt-2">
+                        <div className="relative z-10 pt-10">
+                            <div className="text-[11px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full">
                                 Status: Paid
                             </div>
                         </div>
@@ -278,48 +253,34 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                 <div className="px-12 grid grid-cols-2 gap-12 mb-12 relative z-10">
                     <div className="space-y-6">
                         <div>
-                            <h4 className="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-2 flex items-center gap-1.5">
-                                <Building className="h-3 w-3" /> From
-                            </h4>
+                            <h4 className="text-[10px] font-black uppercase text-cyan-500 tracking-[0.2em] mb-2">FROM</h4>
                             <div className="text-[12px] leading-relaxed text-slate-600 space-y-0.5">
-                                <p className="font-black text-slate-900 text-sm">{settings?.companyName || 'Remotized IT'}</p>
-                                <p className="whitespace-pre-wrap max-w-xs">{settings?.address || ''}</p>
-                                <p className="text-primary font-bold">{settings?.email || ''}</p>
-                                <p>{settings?.phone || ''}</p>
+                                <p className="font-black text-black text-sm">{settings?.companyName || 'Remotized IT'}</p>
+                                <p className="whitespace-pre-wrap">{settings?.address || ''}</p>
+                                <p className="text-cyan-500 font-bold">{settings?.email || ''}</p>
                             </div>
                         </div>
                         <div>
-                            <h4 className="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-2 flex items-center gap-1.5">
-                                <User className="h-3 w-3" /> Bill To
-                            </h4>
+                            <h4 className="text-[10px] font-black uppercase text-cyan-500 tracking-[0.2em] mb-2">BILL TO</h4>
                             <div className="text-[12px] leading-relaxed text-slate-600 space-y-0.5">
-                                <p className="font-black text-slate-900 text-sm">{client?.name || 'Valued Client'}</p>
-                                <p className="font-bold text-primary">{client?.company || ''}</p>
-                                <p className="max-w-xs">{client?.country || ''}</p>
+                                <p className="font-black text-black text-sm">{client?.name || 'Valued Client'}</p>
+                                <p className="font-bold text-cyan-500">{client?.company || ''}</p>
+                                <p>{client?.country || ''}</p>
                             </div>
                         </div>
                     </div>
 
                     <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 flex flex-col justify-center gap-4">
                         <div className="flex justify-between items-center border-b border-slate-200 pb-3">
-                            <div className="flex items-center gap-2 text-slate-400">
-                               <Hash className="h-3 w-3" />
-                               <span className="text-[10px] font-black uppercase tracking-widest">Invoice Number</span>
-                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Invoice Number</span>
                             <span className={cn("text-sm font-black", DARK_NAVY)}>{invoiceNumber}</span>
                         </div>
                         <div className="flex justify-between items-center border-b border-slate-200 pb-3">
-                            <div className="flex items-center gap-2 text-slate-400">
-                               <Calendar className="h-3 w-3" />
-                               <span className="text-[10px] font-black uppercase tracking-widest">Issue Date</span>
-                            </div>
-                            <span className="text-sm font-bold text-slate-900">{format(new Date(record.date), "PPP")}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Issue Date</span>
+                            <span className="text-sm font-bold">{format(new Date(record.date), "PPP")}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2 text-slate-400">
-                               <Calendar className="h-3 w-3" />
-                               <span className="text-[10px] font-black uppercase tracking-widest">Due Date</span>
-                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Due Date</span>
                             <span className={cn("text-sm font-black", DARK_NAVY)}>{format(addDays(new Date(record.date), 10), "PPP")}</span>
                         </div>
                     </div>
@@ -330,31 +291,27 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                     <div className="rounded-xl border border-slate-200 overflow-hidden">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-primary text-slate-950">
+                                <tr className="bg-cyan-400 text-black">
                                     <th className="py-4 px-6 text-left text-[10px] font-black uppercase tracking-[0.2em]">Service Description</th>
                                     <th className="py-4 px-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">Project</th>
-                                    <th className="py-4 px-6 text-right text-[10px] font-black uppercase tracking-[0.2em]">Total Amount</th>
+                                    <th className="py-4 px-6 text-right text-[10px] font-black uppercase tracking-[0.2em]">Total</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
                                 <tr>
                                     <td className="py-10 px-6 align-top">
-                                        <p className="text-lg font-black text-slate-900 mb-1">{record.title}</p>
-                                        <p className="text-xs text-slate-400 italic">
-                                            Professional IT services and deliverables as per agreed terms.
-                                        </p>
+                                        <p className="text-lg font-black mb-1">{record.title}</p>
+                                        <p className="text-xs text-slate-400 italic">Professional IT services provided.</p>
                                     </td>
                                     <td className="py-10 px-6 text-center align-top">
-                                        <span className={cn("inline-block px-4 py-1.5 rounded-full bg-slate-100 text-[10px] font-black uppercase tracking-wider", DARK_NAVY)}>
-                                            {project?.name || 'Standard Service'}
+                                        <span className={cn("inline-block px-4 py-1.5 rounded-full bg-slate-100 text-[10px] font-black uppercase", DARK_NAVY)}>
+                                            {project?.name || 'Service'}
                                         </span>
                                     </td>
                                     <td className="py-10 px-6 text-right align-top">
                                         <div className="flex flex-col items-end">
-                                            <span className="text-xs font-bold text-slate-900">৳</span>
-                                            <span className="text-3xl font-black text-slate-900 tabular-nums">
-                                                {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                            </span>
+                                            <span className="text-xs font-bold">৳</span>
+                                            <span className="text-3xl font-black tabular-nums">{record.amount.toLocaleString()}</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -367,68 +324,60 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                 <div className="p-12 pt-8 space-y-12 relative z-10 mt-auto">
                     <div className="flex justify-between items-start">
                         <div className="space-y-3 max-w-sm">
-                            <div className="flex items-center gap-2 text-primary">
-                                <CreditCard className="h-4 w-4" />
-                                <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">Payment Information</h4>
-                            </div>
+                            <h4 className="text-[10px] font-black uppercase text-cyan-500 tracking-[0.2em]">PAYMENT INFORMATION</h4>
                             <div className="text-[11px] text-slate-600 bg-slate-50 p-6 rounded-xl border border-slate-100 whitespace-pre-wrap font-medium">
-                                {settings?.paymentDetails || 'Refer to standard billing terms.'}
+                                {settings?.paymentDetails || 'Terms apply.'}
                             </div>
                         </div>
-
                         <div className="w-72 space-y-2">
                             <div className="flex justify-between items-center text-slate-500">
-                                <span className="text-[9px] font-black uppercase tracking-widest">Subtotal</span>
-                                <span className="text-sm font-bold">৳ {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-slate-500">
-                                <span className="text-[9px] font-black uppercase tracking-widest">Tax (0%)</span>
-                                <span className="text-sm font-bold">৳ 0.00</span>
+                                <span className="text-[9px] font-black uppercase">Subtotal</span>
+                                <span className="text-sm font-bold">৳ {record.amount.toLocaleString()}</span>
                             </div>
                             <div className="h-px bg-slate-100 my-2" />
-                            <div className="flex justify-between items-center bg-primary p-4 rounded-xl text-slate-950 shadow-lg shadow-primary/10">
-                                <span className="text-xs font-black uppercase tracking-widest">Total Amount</span>
-                                <span className="text-2xl font-black tabular-nums">৳ {record.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                            <div className="flex justify-between items-center bg-cyan-400 p-4 rounded-xl text-black">
+                                <span className="text-xs font-black uppercase">Total Amount</span>
+                                <span className="text-2xl font-black tabular-nums">৳ {record.amount.toLocaleString()}</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="pt-8 border-t border-slate-100 flex justify-between items-end">
                         <div className="space-y-1">
-                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Thank you for your business!</p>
+                            <p className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.2em]">Thank you for your business!</p>
                             <p className="text-[8px] text-slate-400">Generated {format(new Date(), "PPpp")}</p>
                         </div>
                         <div className="text-right">
                             <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mb-1">Processed By</p>
                             <div className="flex items-center gap-3 justify-end">
-                                <div className="h-7 w-7 rounded-full bg-slate-100 flex items-center justify-center text-primary font-black text-[9px]">
+                                <div className="h-7 w-7 rounded-full bg-slate-100 flex items-center justify-center text-cyan-500 font-black text-[9px]">
                                     {processedByName.charAt(0).toUpperCase()}
                                 </div>
-                                <p className="text-sm font-black text-slate-900">{processedByName}</p>
+                                <p className="text-sm font-black">{processedByName}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="h-1.5 bg-primary w-full mt-auto" />
+                <div className="h-1.5 bg-cyan-400 w-full mt-auto" />
             </div>
         </div>
 
         <DialogFooter className="p-6 bg-background border-t flex items-center justify-center gap-4 flex-row">
-            <Button variant="outline" size="lg" onClick={handlePrint} className="bg-white border-slate-200 hover:bg-slate-50 shadow-sm px-8 text-slate-900">
+            <Button variant="outline" size="lg" onClick={handlePrint} className="font-bold uppercase tracking-tighter shadow-sm px-8">
                 <Printer className="mr-2 h-4 w-4" />
-                Print Preview
+                Print
             </Button>
             <Button 
                 size="lg" 
                 onClick={handleSavePdf} 
                 disabled={isSaving}
-                className="bg-primary hover:brightness-110 shadow-lg shadow-primary/20 px-8 font-bold text-slate-950 min-w-[200px]"
+                className="bg-black text-white hover:bg-black/90 font-black uppercase tracking-tighter px-8 min-w-[200px]"
             >
                 {isSaving ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Rendering PDF...</>
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</>
                 ) : (
-                    <><Download className="mr-2 h-4 w-4" /> Save as PDF</>
+                    <><Download className="mr-2 h-4 w-4" /> Download PDF</>
                 )}
             </Button>
         </DialogFooter>

@@ -99,6 +99,8 @@ export default function ProjectsPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
+  
+  // Lifted state to prevent freezing
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
 
   const projectsRef = useMemoFirebase(() => {
@@ -151,7 +153,7 @@ export default function ProjectsPage() {
       workHours: 0,
       createdAt: new Date().toISOString(),
     });
-    toast({ title: "Project Created", description: `${values.name} has been added.` });
+    toast({ title: "Project Created" });
     form.reset();
     setIsAddOpen(false);
   }
@@ -167,33 +169,115 @@ export default function ProjectsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Project Portfolio</h1>
+          <h1 className="text-3xl font-black uppercase tracking-tight">Project Portfolio</h1>
           <p className="text-muted-foreground mt-1">Manage deliverables and team allocations.</p>
         </div>
 
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger asChild>
-            <Button size="lg"><PlusCircle className="mr-2 h-5 w-5" /> New Project</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto border-border">
+        <Button onClick={() => setIsAddOpen(true)} className="font-black uppercase tracking-tighter">
+            <PlusCircle className="mr-2 h-4 w-4" /> New Project
+        </Button>
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input 
+          placeholder="Search projects..." 
+          className="pl-9 h-12 border-2 focus-visible:ring-black"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      <Card className="ink-card">
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="py-20 text-center animate-pulse">Syncing portfolio...</div>
+          ) : filteredProjects.length === 0 ? (
+            <div className="py-20 text-center opacity-40">
+              <Briefcase className="mx-auto h-8 w-8 mb-4" />
+              <p>No projects found.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader className="ink-table-header">
+                <TableRow>
+                  <TableHead className="w-[100px]">Ref</TableHead>
+                  <TableHead>Project Title</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Budget</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProjects.map((project) => (
+                  <TableRow key={project.id} className="hover:bg-muted/30 transition-colors">
+                    <TableCell className="text-[10px] font-mono font-black text-muted-foreground">
+                      #PRJ-{project.id.slice(-4).toUpperCase()}
+                    </TableCell>
+                    <TableCell className="font-bold">{project.name}</TableCell>
+                    <TableCell>
+                       <Badge variant="secondary" className="text-[9px] font-black uppercase h-5">
+                          {project.projectType}
+                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-[9px] font-black uppercase h-5">
+                        {project.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-black text-sm">Tk {project.budget?.toLocaleString()}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                              <DropdownMenuLabel className="text-[10px] font-black uppercase">Actions</DropdownMenuLabel>
+                              <DropdownMenuItem onSelect={() => router.push(`/kothakom/projects/${project.id}`)}>
+                                  <Eye className="mr-2 h-4 w-4" /> Open Portal
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                  onSelect={() => setProjectToDelete(project.id)} 
+                                  className="text-destructive font-bold"
+                              >
+                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                              </DropdownMenuItem>
+                          </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Lifted Modals */}
+      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+          <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto border-2 border-black">
             <DialogHeader>
-              <DialogTitle>Initiate New Project</DialogTitle>
+              <DialogTitle className="font-black uppercase">Initiate New Project</DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <FormField control={form.control} name="name" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Project Title</FormLabel>
-                      <FormControl><Input {...field} /></FormControl>
+                      <FormLabel className="font-black uppercase text-xs">Project Title</FormLabel>
+                      <FormControl><Input className="border-2" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="clientId" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Client</FormLabel>
+                      <FormLabel className="font-black uppercase text-xs">Client</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Select Client" /></SelectTrigger></FormControl>
+                        <FormControl><SelectTrigger className="border-2"><SelectValue /></SelectTrigger></FormControl>
                         <SelectContent>
                           {clients?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                         </SelectContent>
@@ -205,8 +289,8 @@ export default function ProjectsPage() {
 
                 <FormField control={form.control} name="description" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description / Scope</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
+                    <FormLabel className="font-black uppercase text-xs">Scope / Summary</FormLabel>
+                    <FormControl><Textarea className="border-2 min-h-[100px]" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -214,16 +298,14 @@ export default function ProjectsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField control={form.control} name="startDate" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Initial Date</FormLabel>
-                      <FormControl><Input type="date" {...field} /></FormControl>
-                      <FormMessage />
+                      <FormLabel className="font-black uppercase text-xs">Start Date</FormLabel>
+                      <FormControl><Input type="date" className="border-2" {...field} /></FormControl>
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="handoverDate" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Handover Date</FormLabel>
-                      <FormControl><Input type="date" {...field} /></FormControl>
-                      <FormMessage />
+                      <FormLabel className="font-black uppercase text-xs">Handover Date</FormLabel>
+                      <FormControl><Input type="date" className="border-2" {...field} /></FormControl>
                     </FormItem>
                   )} />
                 </div>
@@ -231,38 +313,34 @@ export default function ProjectsPage() {
                 <div className="grid grid-cols-3 gap-4">
                   <FormField control={form.control} name="budget" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Budget (Tk)</FormLabel>
-                      <FormControl><Input type="number" {...field} /></FormControl>
-                      <FormMessage />
+                      <FormLabel className="font-black uppercase text-xs">Budget (Tk)</FormLabel>
+                      <FormControl><Input type="number" className="border-2" {...field} /></FormControl>
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="projectType" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Revenue Type</FormLabel>
+                      <FormLabel className="font-black uppercase text-xs">Revenue</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <FormControl><SelectTrigger className="border-2"><SelectValue /></SelectTrigger></FormControl>
                         <SelectContent>
                           <SelectItem value="Fixed">Fixed Price</SelectItem>
-                          <SelectItem value="Monthly">Monthly Service</SelectItem>
+                          <SelectItem value="Monthly">Monthly</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="status" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status</FormLabel>
+                      <FormLabel className="font-black uppercase text-xs">Status</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <FormControl><SelectTrigger className="border-2"><SelectValue /></SelectTrigger></FormControl>
                         <SelectContent>
                           <SelectItem value="New">New</SelectItem>
                           <SelectItem value="In Progress">In Progress</SelectItem>
                           <SelectItem value="Hold">Hold</SelectItem>
-                          <SelectItem value="Cancelled">Cancelled</SelectItem>
                           <SelectItem value="Completed">Completed</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage />
                     </FormItem>
                   )} />
                 </div>
@@ -270,139 +348,34 @@ export default function ProjectsPage() {
                 <div className="grid grid-cols-1 gap-4">
                   <FormField control={form.control} name="managerEmail" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Project Manager</FormLabel>
+                      <FormLabel className="font-black uppercase text-xs">Project Manager</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Select Manager" /></SelectTrigger></FormControl>
+                        <FormControl><SelectTrigger className="border-2"><SelectValue /></SelectTrigger></FormControl>
                         <SelectContent>
                           {users?.map(u => <SelectItem key={u.email} value={u.email}>{u.name}</SelectItem>)}
                         </SelectContent>
                       </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  
-                  <FormField control={form.control} name="assignedEmails" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Assigned Team Members</FormLabel>
-                      <FormControl>
-                        <UserSelect field={field} />
-                      </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )} />
                 </div>
 
                 <DialogFooter>
-                  <Button type="submit" className="w-full" size="lg">Create Project Profile</Button>
+                  <Button type="submit" className="w-full font-black uppercase h-12">Create Project Profile</Button>
                 </DialogFooter>
               </form>
             </Form>
           </DialogContent>
         </Dialog>
-      </div>
-
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input 
-          placeholder="Search projects..." 
-          className="pl-9 h-12"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-
-      <Card>
-        <CardContent className="pt-6">
-          {isLoading ? (
-            <div className="py-10 text-center animate-pulse">Syncing portfolio...</div>
-          ) : filteredProjects.length === 0 ? (
-            <div className="py-20 text-center border-2 border-dashed rounded-lg">
-              <Briefcase className="mx-auto h-8 w-8 text-muted-foreground mb-4 opacity-50" />
-              <p className="text-muted-foreground">No projects found.</p>
-            </div>
-          ) : (
-            <div className="rounded-md border overflow-hidden">
-              <Table>
-                <TableHeader className="bg-muted/50">
-                  <TableRow>
-                    <TableHead className="w-[100px]">Ref</TableHead>
-                    <TableHead>Project Title</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Budget</TableHead>
-                    <TableHead>Dates</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProjects.map((project) => (
-                    <TableRow key={project.id} className="group">
-                      <TableCell className="text-[10px] font-mono font-bold text-muted-foreground">
-                        #PRJ-{project.id.slice(-4).toUpperCase()}
-                      </TableCell>
-                      <TableCell className="font-bold">{project.name}</TableCell>
-                      <TableCell>
-                         <Badge variant="secondary" className="text-[10px] font-medium">
-                            {project.projectType === 'Monthly' ? 'Retainer' : 'Fixed'}
-                         </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={
-                          project.status === 'In Progress' ? 'border-primary text-primary' : 
-                          project.status === 'Completed' ? 'border-green-500 text-green-500' : 
-                          project.status === 'Cancelled' ? 'border-red-500 text-red-500' : ''
-                        }>
-                          {project.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">Tk {project.budget?.toLocaleString()}</TableCell>
-                      <TableCell className="text-[10px] text-muted-foreground whitespace-nowrap">
-                        <div className="flex flex-col">
-                           <span>Starts: {project.startDate}</span>
-                           <span className="font-bold text-foreground">Handover: {project.handoverDate}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <span className="sr-only">Open menu</span>
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem onSelect={() => router.push(`/kothakom/projects/${project.id}`)}>
-                                    <Eye className="mr-2 h-4 w-4" /> View Portal
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem 
-                                    onSelect={() => setProjectToDelete(project.id)} 
-                                    className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                                >
-                                    <Trash2 className="mr-2 h-4 w-4" /> Delete Project
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       <AlertDialog open={!!projectToDelete} onOpenChange={(val) => !val && setProjectToDelete(null)}>
-          <AlertDialogContent>
+          <AlertDialogContent className="border-2 border-black">
               <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Project?</AlertDialogTitle>
-                  <AlertDialogDescription>This will permanently remove this project profile.</AlertDialogDescription>
+                  <AlertDialogTitle className="font-black uppercase">Delete Project?</AlertDialogTitle>
+                  <AlertDialogDescription>This will permanently remove the record.</AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">Delete</AlertDialogAction>
+                  <AlertDialogCancel className="font-bold">Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-white font-bold">Delete</AlertDialogAction>
               </AlertDialogFooter>
           </AlertDialogContent>
       </AlertDialog>
