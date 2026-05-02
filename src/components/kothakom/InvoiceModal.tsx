@@ -145,7 +145,7 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
         .tracking-tighter { letter-spacing: -0.05em; }
         .tracking-widest { letter-spacing: 0.1em; }
         .opacity-10 { opacity: 0.1; }
-        .relative { position: position; }
+        .relative { position: relative; }
         .absolute { position: absolute; }
         .top-0 { top: 0; }
         .left-0 { left: 0; }
@@ -155,7 +155,7 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
         th, td { padding: 12px 24px; text-align: left; }
         .text-right { text-align: right; }
         .text-center { text-align: center; }
-        img { max-width: 100%; height: auto; }
+        img { max-width: 100%; height: auto; display: block; }
         .status-paid { background-color: #f1f5f9 !important; color: #64748b !important; }
         .status-unpaid { background-color: #fff7ed !important; color: #f97316 !important; }
         .status-cancelled { background-color: #fef2f2 !important; color: #ef4444 !important; }
@@ -181,25 +181,31 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
     try {
       const element = viewRef.current;
       const canvas = await html2canvas(element, { 
-        scale: 4, 
+        scale: 2, // 2x is plenty for high quality A4 while keeping size small
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
         width: element.offsetWidth,
         height: element.offsetHeight,
+        // Critical: handle viewport and scroll for consistent canvas capture
+        scrollX: -window.scrollX,
+        scrollY: -window.scrollY,
       });
       
-      const imgData = canvas.toDataURL('image/png');
+      // Use JPEG with 85% quality to significantly reduce file size (from 50MB to <1MB)
+      const imgData = canvas.toDataURL('image/jpeg', 0.85);
+      
       const pdf = new jsPDF({
         orientation: 'p',
         unit: 'mm',
         format: 'a4',
+        compress: true // Enable jsPDF built-in compression
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
       pdf.save(`${invoiceNumber}.pdf`);
     } catch (error) {
       console.error('Failed to generate PDF:', error);
@@ -232,8 +238,16 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                 <div className="p-12 pb-8 flex justify-between items-start z-10 relative">
                     <div className="space-y-6">
                         {settings?.logoUrl ? (
-                            <div className="relative h-32 w-80">
-                                <Image src={settings.logoUrl} alt="Company Logo" fill className="object-contain object-left" unoptimized />
+                            <div className="relative h-32 w-80 flex items-center justify-start">
+                                {/* Explicit width and height helps html2canvas avoid stretching */}
+                                <Image 
+                                    src={settings.logoUrl} 
+                                    alt="Company Logo" 
+                                    width={320} 
+                                    height={128} 
+                                    className="object-contain object-left" 
+                                    unoptimized 
+                                />
                             </div>
                         ) : (
                             <div className="space-y-1">
@@ -245,10 +259,10 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                         <h1 className={cn("text-6xl font-black tracking-tighter uppercase select-none opacity-10 absolute right-12 top-10 pointer-events-none", DARK_NAVY)}>Invoice</h1>
                         <div className="relative z-10 pt-10">
                             <div className={cn(
-                                "text-[11px] font-black uppercase tracking-widest px-3 py-1 rounded-full",
-                                record.status === 'Paid' ? "text-slate-500 bg-slate-100 status-paid" : 
-                                record.status === 'Unpaid' ? "text-orange-500 bg-orange-50 status-unpaid" : 
-                                "text-red-500 bg-red-50 status-cancelled"
+                                "text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm inline-block border",
+                                record.status === 'Paid' ? "text-slate-500 bg-slate-100 border-slate-200 status-paid" : 
+                                record.status === 'Unpaid' ? "text-orange-600 bg-orange-50 border-orange-200 status-unpaid" : 
+                                "text-red-600 bg-red-50 border-red-200 status-cancelled"
                             )}>
                                 Status: {record.status}
                             </div>
