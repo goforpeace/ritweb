@@ -8,7 +8,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { FileText, Printer, Download, CreditCard, Building, User, Calendar, Hash, Loader2 } from 'lucide-react';
+import { FileText, Printer, Download, Loader2 } from 'lucide-react';
 import { useFirebase, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import { format, addDays } from 'date-fns';
@@ -175,15 +175,23 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
     setIsSaving(true);
     
     try {
-      const canvas = await html2canvas(viewRef.current, { 
-        scale: 4, 
+      // Precise capture for A4 fitting
+      const element = viewRef.current;
+      const canvas = await html2canvas(element, { 
+        scale: 4, // High resolution
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: viewRef.current.scrollWidth,
-        windowHeight: viewRef.current.scrollHeight,
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+        onclone: (clonedDoc) => {
+            // Ensure no scrollbars or weird shifts in clone
+            const clonedEl = clonedDoc.querySelector('.invoice-print-container') as HTMLElement;
+            if (clonedEl) {
+                clonedEl.style.boxShadow = 'none';
+                clonedEl.style.transform = 'none';
+            }
+        }
       });
       
       const imgData = canvas.toDataURL('image/png');
@@ -191,7 +199,6 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
         orientation: 'p',
         unit: 'mm',
         format: 'a4',
-        compress: false
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -212,19 +219,19 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl h-[95dvh] flex flex-col p-0 border-none bg-slate-200 overflow-hidden">
         <DialogHeader className="p-4 bg-background border-b z-20">
-          <DialogTitle className="flex items-center gap-2 font-black uppercase">
+          <DialogTitle className="flex items-center gap-2 font-black uppercase text-foreground">
             <FileText className="h-5 w-5" />
             Invoice Preview
           </DialogTitle>
         </DialogHeader>
         
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-8 bg-[#CBCBCB]">
             <div 
                 ref={viewRef}
                 className="mx-auto w-[210mm] min-h-[297mm] bg-white text-black flex flex-col relative overflow-hidden font-sans invoice-print-container shadow-2xl"
             >
                 {/* Top Accent Bar */}
-                <div className="absolute top-0 left-0 w-full h-2 bg-cyan-400 z-20" />
+                <div className="absolute top-0 left-0 w-full h-2 bg-[#6D8196] z-20" />
 
                 {/* Header Section */}
                 <div className="p-12 pb-8 flex justify-between items-start z-10 relative">
@@ -235,7 +242,7 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                             </div>
                         ) : (
                             <div className="space-y-1">
-                                <h2 className="text-4xl font-black tracking-tighter uppercase">{settings?.companyName || 'REMOTIZED IT'}</h2>
+                                <h2 className="text-4xl font-black tracking-tighter uppercase text-[#4A4A4A]">{settings?.companyName || 'REMOTIZED IT'}</h2>
                             </div>
                         )}
                     </div>
@@ -253,18 +260,18 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                 <div className="px-12 grid grid-cols-2 gap-12 mb-12 relative z-10">
                     <div className="space-y-6">
                         <div>
-                            <h4 className="text-[10px] font-black uppercase text-cyan-500 tracking-[0.2em] mb-2">FROM</h4>
+                            <h4 className="text-[10px] font-black uppercase text-[#6D8196] tracking-[0.2em] mb-2">FROM</h4>
                             <div className="text-[12px] leading-relaxed text-slate-600 space-y-0.5">
                                 <p className="font-black text-black text-sm">{settings?.companyName || 'Remotized IT'}</p>
                                 <p className="whitespace-pre-wrap">{settings?.address || ''}</p>
-                                <p className="text-cyan-500 font-bold">{settings?.email || ''}</p>
+                                <p className="text-[#6D8196] font-bold">{settings?.email || ''}</p>
                             </div>
                         </div>
                         <div>
-                            <h4 className="text-[10px] font-black uppercase text-cyan-500 tracking-[0.2em] mb-2">BILL TO</h4>
+                            <h4 className="text-[10px] font-black uppercase text-[#6D8196] tracking-[0.2em] mb-2">BILL TO</h4>
                             <div className="text-[12px] leading-relaxed text-slate-600 space-y-0.5">
                                 <p className="font-black text-black text-sm">{client?.name || 'Valued Client'}</p>
-                                <p className="font-bold text-cyan-500">{client?.company || ''}</p>
+                                <p className="font-bold text-[#6D8196]">{client?.company || ''}</p>
                                 <p>{client?.country || ''}</p>
                             </div>
                         </div>
@@ -277,7 +284,7 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                         </div>
                         <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Issue Date</span>
-                            <span className="text-sm font-bold">{format(new Date(record.date), "PPP")}</span>
+                            <span className="text-sm font-bold text-black">{format(new Date(record.date), "PPP")}</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Due Date</span>
@@ -291,7 +298,7 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                     <div className="rounded-xl border border-slate-200 overflow-hidden">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-cyan-400 text-black">
+                                <tr className="bg-[#6D8196] text-white">
                                     <th className="py-4 px-6 text-left text-[10px] font-black uppercase tracking-[0.2em]">Service Description</th>
                                     <th className="py-4 px-6 text-center text-[10px] font-black uppercase tracking-[0.2em]">Project</th>
                                     <th className="py-4 px-6 text-right text-[10px] font-black uppercase tracking-[0.2em]">Total</th>
@@ -300,7 +307,7 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                             <tbody className="divide-y divide-slate-100">
                                 <tr>
                                     <td className="py-10 px-6 align-top">
-                                        <p className="text-lg font-black mb-1">{record.title}</p>
+                                        <p className="text-lg font-black mb-1 text-black">{record.title}</p>
                                         <p className="text-xs text-slate-400 italic">Professional IT services provided.</p>
                                     </td>
                                     <td className="py-10 px-6 text-center align-top">
@@ -310,8 +317,8 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                                     </td>
                                     <td className="py-10 px-6 text-right align-top">
                                         <div className="flex flex-col items-end">
-                                            <span className="text-xs font-bold">৳</span>
-                                            <span className="text-3xl font-black tabular-nums">{record.amount.toLocaleString()}</span>
+                                            <span className="text-xs font-bold text-black">৳</span>
+                                            <span className="text-3xl font-black tabular-nums text-black">{record.amount.toLocaleString()}</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -324,7 +331,7 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                 <div className="p-12 pt-8 space-y-12 relative z-10 mt-auto">
                     <div className="flex justify-between items-start">
                         <div className="space-y-3 max-w-sm">
-                            <h4 className="text-[10px] font-black uppercase text-cyan-500 tracking-[0.2em]">PAYMENT INFORMATION</h4>
+                            <h4 className="text-[10px] font-black uppercase text-[#6D8196] tracking-[0.2em]">PAYMENT INFORMATION</h4>
                             <div className="text-[11px] text-slate-600 bg-slate-50 p-6 rounded-xl border border-slate-100 whitespace-pre-wrap font-medium">
                                 {settings?.paymentDetails || 'Terms apply.'}
                             </div>
@@ -332,10 +339,10 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                         <div className="w-72 space-y-2">
                             <div className="flex justify-between items-center text-slate-500">
                                 <span className="text-[9px] font-black uppercase">Subtotal</span>
-                                <span className="text-sm font-bold">৳ {record.amount.toLocaleString()}</span>
+                                <span className="text-sm font-bold text-black">৳ {record.amount.toLocaleString()}</span>
                             </div>
                             <div className="h-px bg-slate-100 my-2" />
-                            <div className="flex justify-between items-center bg-cyan-400 p-4 rounded-xl text-black">
+                            <div className="flex justify-between items-center bg-[#6D8196] p-4 rounded-xl text-white">
                                 <span className="text-xs font-black uppercase">Total Amount</span>
                                 <span className="text-2xl font-black tabular-nums">৳ {record.amount.toLocaleString()}</span>
                             </div>
@@ -344,27 +351,27 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
 
                     <div className="pt-8 border-t border-slate-100 flex justify-between items-end">
                         <div className="space-y-1">
-                            <p className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.2em]">Thank you for your business!</p>
+                            <p className="text-[10px] font-black text-[#6D8196] uppercase tracking-[0.2em]">Thank you for your business!</p>
                             <p className="text-[8px] text-slate-400">Generated {format(new Date(), "PPpp")}</p>
                         </div>
                         <div className="text-right">
                             <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mb-1">Processed By</p>
                             <div className="flex items-center gap-3 justify-end">
-                                <div className="h-7 w-7 rounded-full bg-slate-100 flex items-center justify-center text-cyan-500 font-black text-[9px]">
+                                <div className="h-7 w-7 rounded-full bg-slate-100 flex items-center justify-center text-[#6D8196] font-black text-[9px]">
                                     {processedByName.charAt(0).toUpperCase()}
                                 </div>
-                                <p className="text-sm font-black">{processedByName}</p>
+                                <p className="text-sm font-black text-black">{processedByName}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="h-1.5 bg-cyan-400 w-full mt-auto" />
+                <div className="h-1.5 bg-[#6D8196] w-full mt-auto" />
             </div>
         </div>
 
         <DialogFooter className="p-6 bg-background border-t flex items-center justify-center gap-4 flex-row">
-            <Button variant="outline" size="lg" onClick={handlePrint} className="font-bold uppercase tracking-tighter shadow-sm px-8">
+            <Button variant="outline" size="lg" onClick={handlePrint} className="font-bold uppercase tracking-tighter shadow-sm px-8 bg-white border-[#CBCBCB] text-[#4A4A4A]">
                 <Printer className="mr-2 h-4 w-4" />
                 Print
             </Button>
@@ -372,10 +379,10 @@ export default function InvoiceModal({ record, project, open, onOpenChange }: In
                 size="lg" 
                 onClick={handleSavePdf} 
                 disabled={isSaving}
-                className="bg-black text-white hover:bg-black/90 font-black uppercase tracking-tighter px-8 min-w-[200px]"
+                className="bg-[#4A4A4A] text-[#FFFFE3] hover:bg-black/90 font-black uppercase tracking-tighter px-8 min-w-[200px]"
             >
                 {isSaving ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</>
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Rendering...</>
                 ) : (
                     <><Download className="mr-2 h-4 w-4" /> Download PDF</>
                 )}

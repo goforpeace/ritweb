@@ -4,41 +4,52 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
-    --primary: 0 0% 0%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 10%;
-    --muted: 0 0% 96%;
+    /* User Palette: #4A4A4A, #CBCBCB, #FFFFE3, #6D8196 */
+    --background: 60 100% 95%; /* #FFFFE3 */
+    --foreground: 0 0% 29%;   /* #4A4A4A */
+    
+    --card: 60 100% 95%;
+    --card-foreground: 0 0% 29%;
+    
+    --popover: 60 100% 95%;
+    --popover-foreground: 0 0% 29%;
+    
+    --primary: 211 16% 51%;   /* #6D8196 */
+    --primary-foreground: 60 100% 98%;
+    
+    --secondary: 0 0% 80%;    /* #CBCBCB */
+    --secondary-foreground: 0 0% 20%;
+    
+    --muted: 0 0% 80%;        /* #CBCBCB */
     --muted-foreground: 0 0% 45%;
-    --accent: 0 0% 90%;
-    --accent-foreground: 0 0% 10%;
+    
+    --accent: 211 16% 51%;
+    --accent-foreground: 60 100% 98%;
+    
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 85%;
-    --input: 0 0% 85%;
-    --ring: 0 0% 0%;
-    --radius: 0.3rem;
-    --chart-1: 0 0% 20%;
-    --chart-2: 0 0% 40%;
-    --chart-3: 0 0% 60%;
-    --chart-4: 0 0% 80%;
-    --chart-5: 0 0% 90%;
     
-    /* Sidebar specific for Ink Wash */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 20%;
-    --sidebar-primary: 0 0% 0%;
+    --border: 0 0% 80%;       /* #CBCBCB */
+    --input: 0 0% 80%;
+    --ring: 211 16% 51%;
+    
+    --radius: 0.5rem;
+    
+    --chart-1: 211 16% 51%;
+    --chart-2: 0 0% 29%;
+    --chart-3: 0 0% 80%;
+    --chart-4: 60 100% 90%;
+    --chart-5: 211 16% 60%;
+    
+    /* Sidebar */
+    --sidebar-background: 60 100% 94%;
+    --sidebar-foreground: 0 0% 29%;
+    --sidebar-primary: 211 16% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 92%;
-    --sidebar-accent-foreground: 0 0% 0%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 0 0% 0%;
+    --sidebar-accent: 0 0% 85%;
+    --sidebar-accent-foreground: 0 0% 20%;
+    --sidebar-border: 0 0% 80%;
+    --sidebar-ring: 211 16% 51%;
   }
 }
 
@@ -62,21 +73,18 @@
     display: none;
   }
 
-  /* Native date picker styling for light theme */
+  /* Native date picker styling - Inverted for visibility */
   input[type="date"]::-webkit-calendar-picker-indicator {
     cursor: pointer;
-    opacity: 0.6;
-  }
-  input[type="date"]::-webkit-calendar-picker-indicator:hover {
-    opacity: 1;
+    filter: invert(0.5); /* Makes it greyish/visible on light bg */
   }
 }
 
 @layer components {
   .ink-card {
-    @apply border shadow-none bg-card hover:border-primary/40 transition-colors duration-300;
+    @apply border shadow-sm bg-card hover:border-primary/40 transition-colors duration-300;
   }
   .ink-table-header {
-    @apply bg-secondary/50 font-bold uppercase tracking-tight text-[10px];
+    @apply bg-secondary/30 font-bold uppercase tracking-tight text-[10px];
   }
 }
